@@ -1,0 +1,9 @@
+# directories
+obj/
+bin/
+.idea/
+.vscode/
+
+# ignoring test files
+test.*
+*.ss
