@@ -147,13 +147,17 @@ static void skipWhiteSpace() {
             // Comments signals ignore the line until the next newline
             case '/':
                 if (peekNext() == '/') {
-                    while( peek() != '\n' && !isAtEnd() ) advance();
+                    while ( peek() != '\n' && !isAtEnd() ) advance();
                 } else {
                     return;
                 }
                 break;
             case '#':
-                while( peek() != '\n' && !isAtEnd() ) advance();
+                if (scanner.line < 2 && peekNext() == '!') { 
+                    while( peek() != '\n' && !isAtEnd() ) advance();
+                } else {
+                    return;
+                }
                 break;
             default:
                 return;

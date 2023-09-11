@@ -148,7 +148,7 @@ static Chunk* currentChunk() {
 static void errorAt(Token* token, const char* message) {
     if (parser.panicMode) return;
     parser.panicMode = true;
-    fprintf(stderr, "[line %d] Error", token->line);
+    fprintf(stderr, "COMPILER ERROR:\n[line %d] Error", token->line);
 
     if (token->type==TOKEN_EOF) {
         fprintf(stderr, " at end");

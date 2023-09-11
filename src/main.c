@@ -8,7 +8,7 @@
 #include "vm.h"
 
 static void repl() {
-    puts("simscript v0.1.0");
+    puts("simscript v0.0.1");
     char line[1024];
     for (;;) {
         printf("\n>>> ");
