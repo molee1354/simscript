@@ -328,7 +328,7 @@ static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
 static bool invoke(ObjString* name, int argCount) {
     Value receiver = peek(argCount);
     if (!IS_INSTANCE(receiver)) {
-        runtimeError("Only instances have methods. Method %s not found.",
+        runtimeError("Only instances have methods. Method '%s' not found.",
                      name->chars);
         return false;
     }
