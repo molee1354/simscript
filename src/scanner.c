@@ -148,6 +148,17 @@ static void skipWhiteSpace() {
             case '/':
                 if (peekNext() == '/') {
                     while ( peek() != '\n' && !isAtEnd() ) advance();
+                } else if (peekNext() == '*') {
+                    advance();
+                    advance();
+                    while ( !isAtEnd() ) {
+                        if (peek() == '*' && peekNext() == '/') {
+                            advance();
+                            advance();
+                            break;
+                        }
+                        advance();
+                    }
                 } else {
                     return;
                 }
