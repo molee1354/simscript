@@ -546,7 +546,7 @@ static void addLocal(Token name, bool isConst, bool isScoped) {
  * @brief Method to handle binary operations
  *
  */
-static void binary(bool canAssign) {
+static void binary(bool canAssign __attribute__((unused)) ) {
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
     parsePrecedence( (Precedence)(rule->precedence + 1) );
@@ -577,7 +577,7 @@ static void binary(bool canAssign) {
  *
  * @param canAssign True if assignable
  */
-static void call(bool canAssign) {
+static void call(bool canAssign __attribute__((unused))) {
     uint8_t argCount = argumentList();
     emitBytes(OP_CALL, argCount);
 }
@@ -608,7 +608,7 @@ static void dot(bool canAssign) {
  *
  * @param canAssign True if assignable
  */
-static void literal(bool canAssign) {
+static void literal(bool canAssign __attribute__((unused))) {
     switch (parser.previous.type) {
         case TOKEN_FALSE:  emitByte(OP_FALSE); break;
         case TOKEN_NULL:   emitByte(OP_NULL); break;
@@ -624,7 +624,7 @@ static void literal(bool canAssign) {
  * expression() to handle expressions within the parenthesis
  *
  */
-static void grouping(bool canAssign) {
+static void grouping(bool canAssign __attribute__((unused))) {
     expression(); // takes care of generating bytecode inside the parenthesis
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
@@ -633,7 +633,7 @@ static void grouping(bool canAssign) {
  * @brief Method to convert a parsed string to a number
  *
  */
-static void number(bool canAssign) {
+static void number(bool canAssign __attribute__((unused))) {
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
 }
@@ -643,7 +643,7 @@ static void number(bool canAssign) {
  *
  * @param canAssign Variable to check if the value can be assigned
  */
-static void and_(bool canAssign) {
+static void and_(bool canAssign __attribute__((unused))) {
     int endJump = emitJump(OP_JUMP_IF_FALSE);
 
     emitByte(OP_POP);
@@ -656,7 +656,7 @@ static void and_(bool canAssign) {
  *
  * @param canAssign Variable to check if the value can be assigned
  */
-static void or_(bool canAssign) {
+static void or_(bool canAssign __attribute__((unused))) {
     int elseJump = emitJump(OP_JUMP_IF_FALSE);
     int endJump = emitJump(OP_JUMP);
 
@@ -671,7 +671,7 @@ static void or_(bool canAssign) {
  * @brief Method to convert a parsed string into string value
  *
  */
-static void string(bool canAssign) {
+static void string(bool canAssign __attribute__((unused))) {
     emitConstant( OBJ_VAL(copyString(parser.previous.start + 1,
                                      parser.previous.length -2)) );
 }
@@ -732,7 +732,7 @@ static Token syntheticToken(const char* text) {
     return token;
 }
 
-static void super_(bool canAssign) {
+static void super_(bool canAssign __attribute__((unused))) {
     // limiting the use of super
     if (currentClass == NULL) {
         error("Can't use 'super' outside of a class.");
@@ -764,7 +764,7 @@ static void super_(bool canAssign) {
  *
  * @param canAssign 
  */
-static void this_(bool canAssign) {
+static void this_(bool canAssign __attribute__((unused))) {
     if (currentClass == NULL) {
         error("Using 'this' out of a classdef context.");
         return;
@@ -776,7 +776,7 @@ static void this_(bool canAssign) {
  * @brief Method to deal with the unary minus
  *
  */
-static void unary(bool canAssign) {
+static void unary(bool canAssign __attribute__((unused))) {
     TokenType operatorType = parser.previous.type;
 
     // compiling the operand
