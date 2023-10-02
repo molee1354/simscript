@@ -9,18 +9,15 @@ OBJDIR = obj
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEBUG_TARGET = $(BINDIR)/debug
-RELEASE_TARGET = $(BINDIR)/release
+RELEASE_TARGET = $(BINDIR)/simscript
 
-.PHONY: all debug release run clean
+.PHONY: all debug release clean
 
-all: debug
+all: release
 
 debug: $(DEBUG_TARGET) | $(BINDIR)
 
 release: $(RELEASE_TARGET) | $(BINDIR)
-
-run: debug
-	$(DEBUG_TARGET)
 
 $(DEBUG_TARGET): $(OBJ) | $(BINDIR)
 	$(CC) $(CFLAGS) $(DEBUG_CFLAGS) $^ -o $@
@@ -38,4 +35,4 @@ $(BINDIR):
 	@ mkdir -p $(BINDIR)
 
 clean:
-	rm -rf $(OBJ) $(OBJDIR) $(BINDIR)
+	@ rm -rf $(OBJ) $(OBJDIR) $(BINDIR)
