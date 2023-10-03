@@ -11,13 +11,17 @@ OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEBUG_TARGET = $(BINDIR)/debug
 RELEASE_TARGET = $(BINDIR)/simscript
 
-.PHONY: all debug release clean
+.PHONY: all debug release install clean
 
 all: release
 
 debug: $(DEBUG_TARGET) | $(BINDIR)
 
 release: $(RELEASE_TARGET) | $(BINDIR)
+	@ cp $(RELEASE_TARGET) ./
+
+install: release
+	@ sudo cp $(RELEASE_TARGET) /usr/local/bin
 
 $(DEBUG_TARGET): $(OBJ) | $(BINDIR)
 	$(CC) $(CFLAGS) $(DEBUG_CFLAGS) $^ -o $@

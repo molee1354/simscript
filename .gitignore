@@ -7,3 +7,6 @@ bin/
 # ignoring test files
 test.*
 *.ss
+
+# ignoring binaries
+simscript

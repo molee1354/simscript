@@ -9,6 +9,7 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
   - [Setup](#setup)
     - [Dependencies](#dependencies)
     - [Installation](#installation)
+    - [Usage](#usage)
   - [Current Release](#current-release)
     - [Added built-in functions](#added-built-in-functions)
     - [Constant Variables](#constant-variables)
@@ -51,6 +52,16 @@ Build Simscript using either the `make` or the `make release` command, and the c
 make
 ```
 
+If you really like Simscript and want to add it as a user binary, run the `make install` command.
+
+```shell
+make install
+```
+
+This will copy the simscript binary to the `/usr/local/bin/` directory. You may have to provide a password as the operation requires administrator privilege.
+
+### Usage
+
 You should be able to run Simscript from either of the compiled binaries. Call the binary with no arguments to enter the REPL, or pass in a file path as an argument to run a source file.
 
 ```shell
@@ -59,6 +70,20 @@ You should be able to run Simscript from either of the compiled binaries. Call t
 
 # running a source file
 ./simscript file.ss
+```
+
+Simscript can also be used to run files straight from the terminal if the path to the interpreter is known. Add a `#!` and the path to the Simscript binary in the first line of the file,
+
+```javascript
+#!/path/to/simscript
+
+print "Hello World!";
+```
+
+and call the file directly from the terminal.
+
+```shell
+./filename
 ```
 
 ## Current Release
