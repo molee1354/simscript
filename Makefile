@@ -5,7 +5,6 @@ RELEASE_CFLAGS = -O3
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
-
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEBUG_TARGET = $(BINDIR)/debug
@@ -39,4 +38,7 @@ $(BINDIR):
 	@ mkdir -p $(BINDIR)
 
 clean:
-	@ rm -rf $(OBJ) $(OBJDIR) $(BINDIR)
+	@ rm -rf $(OBJ) $(OBJDIR) $(BINDIR); \
+	if [ -e simscript ]; then \
+		rm simscript; \
+	fi
