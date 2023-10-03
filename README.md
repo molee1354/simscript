@@ -1,84 +1,91 @@
 # simscript v0.0.1
 
-A simple scripting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
+A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
-## Syntax
+## Table of Contents
 
-### Comments
+- [simscript v0.0.1](#simscript-v001)
+  - [Table of Contents](#table-of-contents)
+  - [Setup](#setup)
+    - [Dependencies](#dependencies)
+    - [Installation](#installation)
+  - [Current Release](#current-release)
+    - [Added built-in functions](#added-built-in-functions)
+    - [Constant Variables](#constant-variables)
+    - [Strictly Local Variables](#strictly-local-variables)
+    - [`+` Operator Overload](#-operator-overload)
+  - [Documentation](#documentation)
 
-Comments in Simscript are very much like comments in C (or Java or Javascript).
+## Setup
 
-```javascript
-// This is a comment.
+Setting up simscript can be done in just a few steps.
 
-/*
- * This is a multi-line comment.
- * This line is ignored.
- * This line is also ignored.
- */
+### Dependencies
+
+There aren't very many dependencies for building Simscript; however, it is important to mention that using `clang` will not properly compile the code.
+
+```shell
+make
+gcc
 ```
 
-### Types
+Simscript uses `make` for building and `gcc` for code compilation.
 
---- TYPES in Simscript ---
+### Installation
 
-- bool, string, number
+Clone the git repostitory to your local machine
 
-### Variables
-
-Variables in Simscript are dynamically typed. So we needn't worry about the cerebral overhead that comes from type checking when writing code.
-
-Here we call a few different types of variables in Simscript:
-
-```javascript
-var foo = 3;
-let bar = "Khan";
+```shell
+git clone https://github.com/molee1354/simscript.git
 ```
 
-Both the `var` keyword and the `let` keyword allow us to declare variables. The `var` keyword creates a varaible that can by called across scopes, which is particularly useful for closures. The `let` keyword creates a variable that is strictly local. Variables created using the `let` keyword may not be called outside its local scope. The differences in usage become evident when using closures.
+`cd` into the new `simscript` directory
 
-*Declaring* a variable and *defining* a variable are two different things in Simscript. You can declare a variable and go on to define it later in your code by assigning a value.
-
-```javascript
-var foo;
-let bar;
-
-foo = 3;
-bar = "Khan";
+```shell
+cd simscript
 ```
 
-### Constants
+Build Simscript using either the `make` or the `make release` command, and the compiled binary should be found in both the current directory and the `bin/` directory.
 
-Constants (or constant variables) in Simscript are created by adding the `const` keyword in front of a variable declaration. Constants, as the name suggests, cannot be reassigned. They must also be have simultaneous declaration and definition. The same scoping rules apply as with variables.
-
-```javascript
-const var foo = 3;
-const let bar = "Khan";
-
-// This is not allowed
-foo = 4;
-
-// This is also not allowed
-const var baz;
-baz = 4;
+```shell
+make
 ```
 
-### Conditionals
+You should be able to run Simscript from either of the compiled binaries. Call the binary with no arguments to enter the REPL, or pass in a file path as an argument to run a source file.
 
---- CONDITIONALS in Simscript ---
+```shell
+# Entering the REPL
+./simscript
 
-### Loops
+# running a source file
+./simscript file.ss
+```
 
---- LOOPS in Simscript ---
+## Current Release
 
-### Functions
+Here are some new features in version (`v0.0.1`).
 
---- FUNCTIONS in Simscript ---
+### Added built-in functions
 
-- Built-in functions
+New built-in functions are added. Their specific usage can be found [here](./docs/functions.md)
 
-### Classes
+- `sleep()`
+- `exit()`
+- `system()`
+- `puts()`
 
---- CLASSES in Simscript ---
+### Constant Variables
 
-- Inheritance
+The `const` keyword that allows for the creation of constant variables that cannot be reassigned. Their usage can be found in the [documentation](./docs/syntax.md).
+
+### Strictly Local Variables
+
+The `let` keyword creates a variable that cannot be accessed in any other scope other than the one it is declared in.
+
+### `+` Operator Overload
+
+The `+` operator can now concatenate `Number` and `String` types into a single string.
+
+## Documentation
+
+Documentation for Simscript can be found [here](./docs/syntax.md).
