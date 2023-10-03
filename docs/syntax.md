@@ -114,7 +114,6 @@ i = i + 1
 
 And as of [version `v0.0.1`](../README.md), the `break` and `continue` keywords are yet to be implemented.
 
-
 ## Functions
 
 Functions in Simscript are created using the `function` keyword. Functions may or may not have arguments, and they may or may not have return values.
