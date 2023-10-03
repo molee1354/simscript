@@ -129,12 +129,14 @@ Simscript also supports closures, and along with that, functions in Simscript ar
 
 ```javascript
 function outside() {
+    // using the 'var' keyword for variable access across scopes
     var foo = 3;
 
     function inside() {
         print "This is " + foo;
     }
 
+    // functions may be returned
     return inside;
 }
 
@@ -148,7 +150,7 @@ If the `foo` variable were to be declared using the `let` keyword, this code wou
 
 Simscript supports basic object-oriented programming patterns. Class definitions can be created with the `class` keyword.
 
-This is an example of a class in Simscript.
+This is an example of using a class in Simscript.
 
 ```javascript
 class Animal {
@@ -170,8 +172,48 @@ Running this program would result in:
 Bark!
 ```
 
-And as of [version `v0.0.1`](../README.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The class constructor can be called by simply calling the class name as a function.
+And as of [version `v0.0.1`](../README.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The `this` keyword can be used (very much like in Java) to refer the current class that is being defined.
+
+Objects can be created by calling a class constructor, which is simply the class name as a function with the appropriate arguments.
 
 You may notice that class methods don't have a `function` keyword when they are being defined. This goes back to the fact that Simscript currently does not support direct property definitions within classes. This is because any name that is within the class definition is considered to be a method name. I realise that this limits the imaginative things that can be done in the language, so I may make efforts to fix this in the future.
 
 All methods in a class are public by default.
+
+### Inheritance
+
+Classes in Simscript support inheritance. Using the `extends` keyword, a child class can be created. Within a child class, the `super` keyword can be used to refer to the parent class and gain access to some of the methods there.
+
+Here is quick example of how inheritance works in Simscript
+
+```javascript
+class Animal {
+    init(type) {
+        this.type = type;
+    }
+    speak(sound) {
+        print sound + "!";
+    }
+}
+
+class Dog extends Animal {
+    init(name) {
+        this.name = name;
+        super.init("Dog");
+    }
+    bark() {
+        print "My name is " + this.name;
+        this.speak("Bark");
+    }
+}
+
+var pet = Dog("Khan");
+pet.bark();
+```
+
+The code above would output:
+
+```shell
+My name is Khan
+Bark!
+```
