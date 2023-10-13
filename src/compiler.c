@@ -993,8 +993,8 @@ static void function(FunctionType type) {
     // parameters
     if (!check(TOKEN_RIGHT_PAREN)) {
         do {
-            current->function->arity++;
-            if (current->function->arity > 255) {
+            current->function->params++;
+            if (current->function->params > 255) {
                 errorAtCurrent("Can't have more than 255 parameters");
             }
             uint8_t constant = parseVariable("Expect parameter name", false, false);

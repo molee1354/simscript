@@ -131,7 +131,7 @@ struct Obj {
  */
 typedef struct {
     Obj obj;
-    int arity;
+    int params;
     int upvalueCount;
     Chunk chunk;
     ObjString* name;

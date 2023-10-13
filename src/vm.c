@@ -240,9 +240,9 @@ static Value peek(int distance) {
  */
 static bool call(ObjClosure* closure, int argCount) {
     // checking argument numbers
-    if (argCount != closure->function->arity) {
+    if (argCount != closure->function->params) {
         runtimeError("Expected %d arguments but got %d.",
-                closure->function->arity, argCount);
+                closure->function->params, argCount);
         return false;
     }
     if (vm.frameCount == FRAMES_MAX) {
