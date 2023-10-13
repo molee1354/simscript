@@ -1247,6 +1247,14 @@ static void printStatement() {
 }
 
 /**
+ * @brief Method to handle import statements
+ */
+static void importStatement() {
+    printf("Import from: ");
+    printStatement();
+}
+
+/**
  * @brief Method to handle return statements
  */
 static void returnStatement() {
@@ -1348,6 +1356,8 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
+    } else if (match(TOKEN_IMPORT)) {
+        importStatement();
     } else if (match(TOKEN_FOR)) {
         forStatement();
     } else if (match(TOKEN_IF)) {
