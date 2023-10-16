@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "reader.h"
+#include "read.h"
 
 char* readFile(const char* path) {
     FILE* file = fopen(path, "rb");
