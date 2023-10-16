@@ -1,4 +1,3 @@
-#include "table.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -18,6 +17,7 @@
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -253,7 +253,7 @@ static bool call(ObjClosure* closure, int argCount) {
     frame->closure = closure;
     frame->ip = closure->function->chunk.code;
 
-    // ensuring that the arguments on teh stack line up with func params
+    // ensuring that the arguments on the stack line up with func params
     frame->slots = vm.stackTop - argCount - 1;
     return true;
 }
@@ -312,7 +312,7 @@ static bool callValue(Value callee, int argCount) {
 static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
     Value method;
     if (!tableGet(&klass->methods, name, &method)) {
-        runtimeError("Undefined property '%s' in class '%s'.",
+        runtimeError("Undefined method '%s' in class '%s'.",
                 name->chars, klass->name->chars);
         return false;
     }
@@ -701,6 +701,11 @@ static InterpretResult run() {
                 break;
             }
             case OP_PRINT: {
+                printValue(pop());
+                printf("\n");
+                break;
+            }
+            case OP_IMPORT: {
                 printValue(pop());
                 printf("\n");
                 break;

@@ -1242,7 +1242,7 @@ static void ifStatement() {
  */
 static void printStatement() {
     expression();
-    consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'echo' argument.");
     emitByte(OP_PRINT);
 }
 
@@ -1250,8 +1250,9 @@ static void printStatement() {
  * @brief Method to handle import statements
  */
 static void importStatement() {
-    printf("Import from: ");
-    printStatement();
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after import path.");
+    emitByte(OP_IMPORT);
 }
 
 /**
