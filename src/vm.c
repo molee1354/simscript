@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "table.h"
 #include "value.h"
+#include "read.h"
 #include "vm.h"
 
 /**
@@ -706,8 +707,22 @@ static InterpretResult run() {
                 break;
             }
             case OP_IMPORT: {
-                printValue(pop());
-                printf("\n");
+                ObjString* filepath = AS_STRING(pop());
+                const char* importSource = readFile(filepath->chars);
+                ObjFunction* import = compile(importSource);
+
+                if (import == NULL) {
+                    runtimeError("Failed to import specified module.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                push(OBJ_VAL(import));
+                ObjClosure* closure = newClosure(import);
+                pop();
+                push(OBJ_VAL(closure));
+                // call(closure, 0);
+
+                // frame = &vm.frames[vm.frameCount - 1];
                 break;
             }
             case OP_JUMP: {
