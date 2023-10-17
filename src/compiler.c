@@ -1256,6 +1256,13 @@ static void forStatement() {
     endScope();
 }
 
+static void breakStatement() {
+
+}
+static void continueStatement() {
+
+}
+
 /**
  * @brief Method to parse through the if statement
  */
@@ -1413,6 +1420,10 @@ static void statement() {
         returnStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();
+    } else if (match(TOKEN_BREAK)) {
+        breakStatement();
+    } else if (match(TOKEN_CONTINUE)) {
+        continueStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope();
         block();
