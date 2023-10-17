@@ -722,22 +722,10 @@ static InterpretResult run() {
                 break;
             }
             case OP_IMPORT: {
-                ObjString* filepath = AS_STRING(pop());
-                const char* importSource = readFile(filepath->chars);
-                ObjFunction* import = compile(importSource);
-
-                if (import == NULL) {
-                    runtimeError("Failed to import specified module.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-
-                push(OBJ_VAL(import));
-                ObjClosure* closure = newClosure(import);
-                pop();
-                push(OBJ_VAL(closure));
-                // call(closure, 0);
-
-                // frame = &vm.frames[vm.frameCount - 1];
+                printf("Import statements not implemented in v0.0.1.\nPath: ");
+                printValue(pop());
+                printf("\n");
+                break;
                 break;
             }
             case OP_JUMP: {
