@@ -863,6 +863,14 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
+
+    [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_PLUS_EQUALS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS_EQUALS]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_STAR_EQUALS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_SLASH_EQUALS]  = {NULL,     NULL,   PREC_NONE},
+
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
     [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
