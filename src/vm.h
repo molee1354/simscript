@@ -1,5 +1,5 @@
-#ifndef _vm_h
-#define _vm_h
+#ifndef simscript_vm_h
+#define simscript_vm_h
 
 #include "chunk.h"
 #include "value.h"

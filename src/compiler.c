@@ -7,120 +7,12 @@
 #include "compiler.h"
 #include "memory.h"
 #include "object.h"
-#include "scanner.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
 #endif
 
-/**
- * @brief Parser struct to hold the current and previous parser
- *
- */
-typedef struct {
-    Token current;
-    Token previous;
-
-    bool hadError;  // if the parser encountered an error during parsing
-    bool panicMode; // set panicMode to unwind out of the parser code
-} Parser;
-
-typedef enum {
-    PREC_NONE,
-    PREC_ASSIGNMENT,  // =
-    PREC_OR,          // or
-    PREC_AND,         // and
-    PREC_EQUALITY,    // == !=
-    PREC_COMPARISON,  // < > <= >=
-    PREC_TERM,        // + -
-    PREC_FACTOR,      // * / %
-    PREC_UNARY,       // ! -
-    PREC_CALL,        // . ()
-    PREC_PRIMARY
-} Precedence;
-
-/**
- * @brief ParseFn is a simple typedef for a function with no args and no return
- *
- */
-typedef void (*ParseFn)(bool canAssign);
-
-/**
- * @brief Wrapper for a single row in the parser table
- *
- */
-typedef struct {
-    ParseFn prefix;
-    ParseFn infix;
-    Precedence precedence;
-} ParseRule;
-
-/**
- * @brief Struct for local variable
- *
- */
-typedef struct {
-    Token name;
-    int depth;       // Depth of local variable
-    bool isConst;    // if variable is declared constant
-    bool isScoped;   // if variable is strictly local
-    bool isCaptured; // true if local is captured by any later nested func dec
-} Local;
-
-typedef struct {
-    int depth;
-    bool isConst;
-    bool isScoped;
-} ResolvedLocal;
-
-/**
- * @brief Struct to hold upvalues
- *
- */
-typedef struct {
-    uint8_t index;
-    bool isLocal;
-} Upvalue;
-
-/**
- * @brief Enum to hold the different types of functions
- *
- */
-typedef enum {
-    TYPE_FUNCTION,
-    TYPE_INITIALIZER,
-    TYPE_METHOD,
-    TYPE_SCRIPT,
-} FunctionType;
-
-/**
- * @brief Struct for holding the list of local variables
- *
- */
-typedef struct Compiler {
-    struct Compiler* enclosing;
-
-    // Setting up an implicit top-level function
-    ObjFunction* function;
-    FunctionType type;
-
-    Local locals[UINT8_COUNT];
-    int localCount;                // The number of local variables
-
-    Upvalue upvalues[UINT8_COUNT]; // Upvalue array
-    int scopeDepth;                // The depth of the scope (0 for global)
-} Compiler;
-
-/**
- * @class ClassCompiler
- * @brief Class compiler holding information about the current enclosing class
- *
- */
-typedef struct ClassCompiler {
-    struct ClassCompiler* enclosing;
-    bool hasSuperClass;
-} ClassCompiler;
 
 Parser parser;
 
@@ -340,7 +232,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     compiler->function = newFunction();
     current = compiler;
 
-    // storing the function's name (if not top-level/sc__main__ript)
+    // storing the function's name (if not top-level/script)
     if (type != TYPE_SCRIPT) {
         current->function->name = copyString(parser.previous.start,
                                              parser.previous.length);
@@ -542,6 +434,7 @@ static void addLocal(Token name, bool isConst, bool isScoped) {
     local->isScoped = isScoped;
     local->isCaptured = false;
 }
+
 /**
  * @brief Method to handle binary operations
  *
@@ -706,6 +599,53 @@ static void namedVariable(Token name, bool canAssign) {
         }
         expression();
         emitBytes(setOp, (uint8_t)arg);
+
+    } else if (canAssign && match(TOKEN_PLUS_PLUS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        emitByte(OP_INCREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_MINUS_MINUS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        emitByte(OP_DECREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_PLUS_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_ADD);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_MINUS_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_SUBTRACT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_STAR_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_MULTIPLY);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_SLASH_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_DIVIDE);
+        emitBytes(setOp, (uint8_t)arg);
     } else {
         emitBytes(getOp, (uint8_t)arg);
     }
@@ -815,6 +755,14 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
+
+    [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_PLUS_EQUALS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS_EQUALS]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_STAR_EQUALS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_SLASH_EQUALS]  = {NULL,     NULL,   PREC_NONE},
+
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
     [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
@@ -828,11 +776,13 @@ ParseRule rules[] = {
     [TOKEN_NULL]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
     [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_IMPORT]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SUPER]         = {super_,   NULL,   PREC_NONE},
     [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
     [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LET]           = {NULL,     NULL,   PREC_NONE},
     [TOKEN_CONST]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
@@ -993,8 +943,8 @@ static void function(FunctionType type) {
     // parameters
     if (!check(TOKEN_RIGHT_PAREN)) {
         do {
-            current->function->arity++;
-            if (current->function->arity > 255) {
+            current->function->params++;
+            if (current->function->params > 255) {
                 errorAtCurrent("Can't have more than 255 parameters");
             }
             uint8_t constant = parseVariable("Expect parameter name", false, false);
@@ -1242,8 +1192,20 @@ static void ifStatement() {
  */
 static void printStatement() {
     expression();
-    consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'echo' argument.");
     emitByte(OP_PRINT);
+}
+
+/**
+ * @brief Method to handle import statements
+ */
+static void importStatement() {
+    consume(TOKEN_STRING, "Expect filepath after import");
+    emitConstant(OBJ_VAL(
+        copyString(parser.previous.start + 1, parser.previous.length - 2)));
+    // expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after import path.");
+    emitByte(OP_IMPORT);
 }
 
 /**
@@ -1348,6 +1310,8 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
+    } else if (match(TOKEN_IMPORT)) {
+        importStatement();
     } else if (match(TOKEN_FOR)) {
         forStatement();
     } else if (match(TOKEN_IF)) {

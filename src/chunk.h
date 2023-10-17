@@ -1,5 +1,5 @@
-#ifndef _chunk_h
-#define _chunk_h
+#ifndef simscript_chunk_h
+#define simscript_chunk_h
 
 #include "common.h"
 #include "value.h"
@@ -36,10 +36,14 @@ typedef enum {
     OP_DIVIDE,
     OP_MOD,
 
+    OP_INCREMENT,
+    OP_DECREMENT,
+
     OP_NOT,
 
     OP_NEGATE,
     OP_PRINT,
+    OP_IMPORT,
     OP_JUMP,
     OP_JUMP_IF_FALSE,
     OP_LOOP,

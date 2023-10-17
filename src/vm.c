@@ -1,4 +1,3 @@
-#include "table.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -18,7 +17,9 @@
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
+#include "table.h"
 #include "value.h"
+#include "read.h"
 #include "vm.h"
 
 /**
@@ -240,9 +241,9 @@ static Value peek(int distance) {
  */
 static bool call(ObjClosure* closure, int argCount) {
     // checking argument numbers
-    if (argCount != closure->function->arity) {
+    if (argCount != closure->function->params) {
         runtimeError("Expected %d arguments but got %d.",
-                closure->function->arity, argCount);
+                closure->function->params, argCount);
         return false;
     }
     if (vm.frameCount == FRAMES_MAX) {
@@ -253,7 +254,7 @@ static bool call(ObjClosure* closure, int argCount) {
     frame->closure = closure;
     frame->ip = closure->function->chunk.code;
 
-    // ensuring that the arguments on teh stack line up with func params
+    // ensuring that the arguments on the stack line up with func params
     frame->slots = vm.stackTop - argCount - 1;
     return true;
 }
@@ -312,7 +313,7 @@ static bool callValue(Value callee, int argCount) {
 static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
     Value method;
     if (!tableGet(&klass->methods, name, &method)) {
-        runtimeError("Undefined property '%s' in class '%s'.",
+        runtimeError("Undefined method '%s' in class '%s'.",
                 name->chars, klass->name->chars);
         return false;
     }
@@ -681,10 +682,25 @@ static InterpretResult run() {
                     int a = (int)AS_NUMBER(pop());
                     push(NUMBER_VAL(a%b));
                 } else {
-                    runtimeError(
-                            "Operands must be two integers.");
+                    runtimeError("Operands must be two integers.");
                     return INTERPRET_RUNTIME_ERROR;;
                 }
+                break;
+            }
+            case OP_INCREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push( NUMBER_VAL( AS_NUMBER(pop())+1 ) );
+                break;
+            }
+            case OP_DECREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push( NUMBER_VAL( AS_NUMBER(pop())-1 ) );
                 break;
             }
 
@@ -703,6 +719,13 @@ static InterpretResult run() {
             case OP_PRINT: {
                 printValue(pop());
                 printf("\n");
+                break;
+            }
+            case OP_IMPORT: {
+                printf("Import statements not implemented in v0.0.1.\nPath: ");
+                printValue(pop());
+                printf("\n");
+                break;
                 break;
             }
             case OP_JUMP: {

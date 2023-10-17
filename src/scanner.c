@@ -217,6 +217,7 @@ static TokenType identifierType() {
               switch (scanner.start[1]) {
                   case 'l': return checkKeyword(2,2, "se", TOKEN_ELSE);
                   case 'x': return checkKeyword(2,5, "tends", TOKEN_INHERIT);
+                  case 'c': return checkKeyword(2,2, "ho", TOKEN_PRINT);
               }
             }
             break;
@@ -229,11 +230,17 @@ static TokenType identifierType() {
               }
             }
             break;
-        case 'i': return checkKeyword(1, 1, "f", TOKEN_IF);
+        case 'i':
+            if (scanner.current-scanner.start > 1) {
+              switch (scanner.start[1]) {
+                  case 'f': return checkKeyword(2,0, "", TOKEN_IF);
+                  case 'm': return checkKeyword(2,4, "port", TOKEN_IMPORT);
+              }
+            }
+            break;
         case 'l': return checkKeyword(1, 2, "et", TOKEN_LET);
         case 'n': return checkKeyword(1, 3, "ull", TOKEN_NULL);
         case 'o': return checkKeyword(1, 1, "r", TOKEN_OR);
-        case 'p': return checkKeyword(1, 4, "rint", TOKEN_PRINT);
         case 'r': return checkKeyword(1, 5, "eturn", TOKEN_RETURN);
         case 's': return checkKeyword(1, 4, "uper", TOKEN_SUPER);
         case 't':
@@ -318,10 +325,39 @@ Token scanToken() {
         case ';': return makeToken(TOKEN_SEMICOLON);
         case '.': return makeToken(TOKEN_DOT);
         case ',': return makeToken(TOKEN_COMMA);
-        case '-': return makeToken(TOKEN_MINUS);
-        case '+': return makeToken(TOKEN_PLUS);
-        case '/': return makeToken(TOKEN_SLASH);
-        case '*': return makeToken(TOKEN_STAR);
+
+        case '-': {
+            if (match('=')) {
+                return makeToken(TOKEN_MINUS_EQUALS);
+            } else if (match('-')) {
+                return makeToken(TOKEN_MINUS_MINUS);
+            } else {
+                return makeToken(TOKEN_MINUS);
+            }
+        }
+        case '+': {
+            if (match('=')) {
+                return makeToken(TOKEN_PLUS_EQUALS);
+            } else if (match('+')) {
+                return makeToken(TOKEN_PLUS_PLUS);
+            } else {
+                return makeToken(TOKEN_PLUS);
+            }
+        }
+        case '/': {
+            if (match('=')) {
+                return makeToken(TOKEN_SLASH_EQUALS);
+            } else {
+                return makeToken(TOKEN_SLASH);
+            }
+        }
+        case '*': {
+            if (match('=')) {
+                return makeToken(TOKEN_STAR_EQUALS);
+            } else {
+                return makeToken(TOKEN_STAR);
+            }
+        }
         case '%': return makeToken(TOKEN_MOD);
 
         // recognizing double character tokens

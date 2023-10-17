@@ -1,5 +1,5 @@
-#ifndef _scanner_h
-#define _scanner_h
+#ifndef simscript_scanner_h
+#define simscript_scanner_h
 
 
 /**
@@ -19,6 +19,10 @@ typedef enum {
     TOKEN_GREATER, TOKEN_GREATER_EQUAL,
     TOKEN_LESS, TOKEN_LESS_EQUAL,
 
+    // Operate and Reassign
+    TOKEN_PLUS_PLUS, TOKEN_MINUS_MINUS, TOKEN_PLUS_EQUALS,
+    TOKEN_MINUS_EQUALS, TOKEN_SLASH_EQUALS, TOKEN_STAR_EQUALS,
+
     // Literals.
     TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_NUMBER,
 
@@ -27,6 +31,7 @@ typedef enum {
     TOKEN_FOR, TOKEN_FUN, TOKEN_IF, TOKEN_LET, TOKEN_NULL, TOKEN_OR,
     TOKEN_PRINT, TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,
     TOKEN_TRUE, TOKEN_VAR, TOKEN_CONST, TOKEN_WHILE, TOKEN_INHERIT,
+    TOKEN_IMPORT,
 
     TOKEN_ERROR, TOKEN_EOF
 } TokenType;

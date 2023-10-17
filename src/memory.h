@@ -1,5 +1,5 @@
-#ifndef _memory_h
-#define _memory_h
+#ifndef simscript_memory_h
+#define simscript_memory_h
 
 #include "common.h"
 #include "object.h"
