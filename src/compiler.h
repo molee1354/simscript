@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
     Token name;
     int depth;       // Depth of local variable
+
     bool isConst;    // if variable is declared constant
     bool isScoped;   // if variable is strictly local
     bool isCaptured; // true if local is captured by any later nested func dec

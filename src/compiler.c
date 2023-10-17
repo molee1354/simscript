@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "memory.h"
 #include "object.h"
+#include "scanner.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -1257,10 +1258,47 @@ static void forStatement() {
 }
 
 static void breakStatement() {
+    if (current->loop == NULL) {
+        error("'break' statements can only be used in a loop.");
+        return;
+    }
 
+    consume(TOKEN_SEMICOLON, "Expected ';' after 'break'.");
+
+    // getting rid of locals in the loop scope
+    for (int i = current->localCount - 1;
+         i >= 0 && current->locals[i].depth > current->loop->scopeDepth;
+         i--) {
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else {
+            emitByte(OP_POP);
+        }
+    }
+    emitJump(OP_BREAK);
 }
-static void continueStatement() {
 
+static void continueStatement() {
+    if (current->loop == NULL) {
+        error("'continue' statements can only be used in a loop.");
+        return;
+    }
+
+    consume(TOKEN_SEMICOLON, "Expected ';' after 'continue'.");
+
+    // getting rid of locals in the loop scope
+    for (int i = current->localCount - 1;
+         i >= 0 && current->locals[i].depth > current->loop->scopeDepth;
+         i--) {
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else {
+            emitByte(OP_POP);
+        }
+    }
+
+    // go back to the current loop start
+    emitLoop(current->loop->start);
 }
 
 /**
