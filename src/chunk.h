@@ -44,6 +44,7 @@ typedef enum {
     OP_NEGATE,
     OP_PRINT,
     OP_IMPORT,
+    OP_BREAK,
     OP_JUMP,
     OP_JUMP_IF_FALSE,
     OP_LOOP,
