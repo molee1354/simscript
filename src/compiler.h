@@ -103,12 +103,13 @@ typedef struct Loop {
  */
 typedef struct Compiler {
     struct Compiler* enclosing;
+    Parser* parser;                // Current parser
+
+    Loop* loop;                    // Loop state
 
     // Setting up an implicit top-level function
     ObjFunction* function;
     FunctionType type;
-
-    Loop* loop;                    // Loop state
 
     Local locals[UINT8_COUNT];
     int localCount;                // The number of local variables
