@@ -682,10 +682,25 @@ static InterpretResult run() {
                     int a = (int)AS_NUMBER(pop());
                     push(NUMBER_VAL(a%b));
                 } else {
-                    runtimeError(
-                            "Operands must be two integers.");
+                    runtimeError("Operands must be two integers.");
                     return INTERPRET_RUNTIME_ERROR;;
                 }
+                break;
+            }
+            case OP_INCREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push( NUMBER_VAL( AS_NUMBER(pop())+1 ) );
+                break;
+            }
+            case OP_DECREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push( NUMBER_VAL( AS_NUMBER(pop())-1 ) );
                 break;
             }
 
