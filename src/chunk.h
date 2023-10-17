@@ -36,6 +36,9 @@ typedef enum {
     OP_DIVIDE,
     OP_MOD,
 
+    OP_INCREMENT,
+    OP_DECREMENT,
+
     OP_NOT,
 
     OP_NEGATE,

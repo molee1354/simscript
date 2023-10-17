@@ -542,6 +542,7 @@ static void addLocal(Token name, bool isConst, bool isScoped) {
     local->isScoped = isScoped;
     local->isCaptured = false;
 }
+
 /**
  * @brief Method to handle binary operations
  *
@@ -705,6 +706,53 @@ static void namedVariable(Token name, bool canAssign) {
             error("Cannot reassign values to constants.");
         }
         expression();
+        emitBytes(setOp, (uint8_t)arg);
+
+    } else if (canAssign && match(TOKEN_PLUS_PLUS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        emitByte(OP_INCREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_MINUS_MINUS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        emitByte(OP_DECREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_PLUS_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_ADD);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_MINUS_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_SUBTRACT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_STAR_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_MULTIPLY);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_SLASH_EQUALS)) {
+        if (isConst) {
+            error("Cannot reassign values to constants.");
+        }
+        namedVariable(name, false);
+        expression();
+        emitByte(OP_DIVIDE);
         emitBytes(setOp, (uint8_t)arg);
     } else {
         emitBytes(getOp, (uint8_t)arg);
