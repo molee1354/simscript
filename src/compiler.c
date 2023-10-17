@@ -285,7 +285,7 @@ static ObjFunction* endCompiler(Compiler* compiler) {
             emitByte(compiler->enclosing, compiler->upvalues[i].index);
         }
     }
-    compiler = compiler->enclosing;
+    compiler->parser->vm->compiler = compiler->enclosing;
     return function;
 }
 
@@ -1030,7 +1030,7 @@ static void method(Compiler* compiler) {
     uint8_t constant = identifierConstant(compiler, &compiler->parser->previous);
     FunctionType type = TYPE_METHOD;
     if ( compiler->parser->previous.length == 4 &&
-         memcmp(compiler->parser->previous.start, "init", 4) == 0 ) {
+        memcmp(compiler->parser->previous.start, "init", 4) == 0 ) {
         type = TYPE_INITIALIZER;
     }
     Compiler funcCompiler;
@@ -1057,8 +1057,8 @@ static void classDeclaration(Compiler* compiler) {
     uint8_t nameConstant = identifierConstant(compiler, &compiler->parser->previous);
     declareVariable(compiler, false, false);
 
-    emitBytes(compiler, OP_CLASS, nameConstant);
-    defineVariable(compiler, nameConstant);
+//    emitBytes(compiler, OP_CLASS, nameConstant);
+//    defineVariable(compiler, nameConstant);
 
     ClassCompiler classCompiler;
     classCompiler.hasSuperClass = false;
@@ -1067,7 +1067,7 @@ static void classDeclaration(Compiler* compiler) {
     // class inheritance
     if (match(compiler, TOKEN_INHERIT)) {
         consume(compiler, TOKEN_IDENTIFIER, "Expect superclass name.");
-        variable(compiler, false);
+//        variable(compiler, false);
 
         if (identifiersEqual(&className, &compiler->parser->previous)) {
             error(compiler->parser, "Invalid inheritance from self.");
@@ -1077,21 +1077,23 @@ static void classDeclaration(Compiler* compiler) {
 
         // default behavior "false, false" : re-assignable, not-scoped.
         addLocal( compiler, syntheticToken("super"), false, false);
-        defineVariable(compiler, 0);
+//        defineVariable(compiler, 0);
 
-        namedVariable(compiler, className, false);
-        emitByte(compiler, OP_INHERIT);
+//        namedVariable(compiler, className, false);
         classCompiler.hasSuperClass = true;
+        emitByte(compiler, OP_INHERIT);
+    } else {
+        emitByte(compiler, OP_CLASS);
     }
-
+    emitByte(compiler, nameConstant);
     // class definition
-    namedVariable(compiler, className, false);
+//    namedVariable(compiler, className, false);
     consume(compiler, TOKEN_LEFT_BRACE, "Expect '{' before class body.");
     while (!check(compiler, TOKEN_RIGHT_BRACE) && !check(compiler, TOKEN_EOF)) {
         method(compiler);
     }
     consume(compiler, TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
-    emitByte(compiler, OP_POP);
+//    emitByte(compiler, OP_POP);
 
     if (classCompiler.hasSuperClass) {
         endScope(compiler);
@@ -1100,6 +1102,7 @@ static void classDeclaration(Compiler* compiler) {
     // set current class to it's enclosing class after it's done declaring.
     // NULL if at global scope.
     endClassCompiler(compiler, &classCompiler);
+    defineVariable(compiler, nameConstant);
 }
 
 /**
@@ -1457,6 +1460,7 @@ static void synchronize(Compiler* compiler) {
             case TOKEN_FOR:
             case TOKEN_IF:
             case TOKEN_WHILE:
+            case TOKEN_BREAK:
             case TOKEN_PRINT:
             case TOKEN_RETURN:
                 return;
