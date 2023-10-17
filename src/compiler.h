@@ -31,22 +31,6 @@ typedef enum {
 } Precedence;
 
 /**
- * @brief ParseFn is a simple typedef for a function with no args and no return
- *
- */
-typedef void (*ParseFn)(bool canAssign);
-
-/**
- * @brief Wrapper for a single row in the parser table
- *
- */
-typedef struct {
-    ParseFn prefix;
-    ParseFn infix;
-    Precedence precedence;
-} ParseRule;
-
-/**
  * @brief Struct for local variable
  *
  */
@@ -98,6 +82,16 @@ typedef struct Loop {
 } Loop;
 
 /**
+ * @class ClassCompiler
+ * @brief Class compiler holding information about the current enclosing class
+ *
+ */
+typedef struct ClassCompiler {
+    struct ClassCompiler* enclosing;
+    bool hasSuperClass;
+} ClassCompiler;
+
+/**
  * @brief Compiler struct
  *
  */
@@ -106,6 +100,8 @@ typedef struct Compiler {
     Parser* parser;                // Current parser
 
     Loop* loop;                    // Loop state
+
+    ClassCompiler* klass;
 
     // Setting up an implicit top-level function
     ObjFunction* function;
@@ -119,14 +115,20 @@ typedef struct Compiler {
 } Compiler;
 
 /**
- * @class ClassCompiler
- * @brief Class compiler holding information about the current enclosing class
+ * @brief ParseFn is a simple typedef for a function with no args and no return
  *
  */
-typedef struct ClassCompiler {
-    struct ClassCompiler* enclosing;
-    bool hasSuperClass;
-} ClassCompiler;
+typedef void (*ParseFn)(Compiler* compiler, bool canAssign);
+
+/**
+ * @brief Wrapper for a single row in the parser table
+ *
+ */
+typedef struct {
+    ParseFn prefix;
+    ParseFn infix;
+    Precedence precedence;
+} ParseRule;
 
 /**
  * @brief Method to compile source code
@@ -141,6 +143,6 @@ ObjFunction* compile(const char* source);
  * @brief Method to mark the compiler root
  *
  */
-void markCompilerRoots();
+void markCompilerRoots(Compiler* compiler);
 
 #endif
