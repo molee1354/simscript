@@ -9,6 +9,7 @@
  *
  */
 typedef struct {
+    VM* vm;
     Token current;
     Token previous;
 
@@ -57,17 +58,6 @@ typedef struct {
     uint8_t index;
     bool isLocal;
 } Upvalue;
-
-/**
- * @brief Enum to hold the different types of functions
- *
- */
-typedef enum {
-    TYPE_FUNCTION,
-    TYPE_INITIALIZER,
-    TYPE_METHOD,
-    TYPE_SCRIPT,
-} FunctionType;
 
 /**
  * @brief Struct for holding Loops
@@ -143,6 +133,6 @@ ObjFunction* compile(const char* source);
  * @brief Method to mark the compiler root
  *
  */
-void markCompilerRoots(Compiler* compiler);
+void markCompilerRoots(VM* vm);
 
 #endif

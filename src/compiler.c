@@ -131,7 +131,7 @@ static bool match(Compiler* compiler, TokenType type) {
  *
  */
 static void emitByte(Compiler* compiler, uint8_t byte) {
-    writeChunk(currentChunk(compiler), byte, compiler->parser->previous.line);
+    writeChunk(compiler->parser->vm, currentChunk(compiler), byte, compiler->parser->previous.line);
 }
 
 /**
@@ -187,7 +187,7 @@ static void emitReturn(Compiler* compiler) {
  *
  */
 static uint8_t makeConstant(Compiler* compiler, Value value) {
-    int constant = addConstant(currentChunk(compiler), value);
+    int constant = addConstant(compiler->parser->vm, currentChunk(compiler), value);
 
     // store up to 256 constants in a chunk. Needs to be expanded
     if (constant > UINT8_MAX) {
@@ -232,11 +232,11 @@ static void initCompiler(Parser* parser, Compiler* compiler, Compiler* parent, F
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
-    compiler->function = newFunction();
+    compiler->function = newFunction(parser->vm, type);
 
     // storing the function's name (if not top-level/script)
     if (type != TYPE_SCRIPT) {
-        compiler->function->name = copyString(parser->previous.start,
+        compiler->function->name = copyString(parser->vm, parser->previous.start,
                                               parser->previous.length);
     }
 
@@ -333,8 +333,9 @@ static uint8_t argumentList(Compiler* compiler);
  * @return uint8_t index of the constant in the program
  */
 static uint8_t identifierConstant(Compiler* compiler, Token* name) {
-    return makeConstant(compiler, OBJ_VAL(copyString(name->start,
-                    name->length)));
+    return makeConstant(compiler, OBJ_VAL(copyString(compiler->parser->vm,
+                                                     name->start,
+                                                     name->length)));
 }
 
 /**
@@ -613,8 +614,9 @@ static void or_(Compiler* compiler, bool canAssign __attribute__((unused))) {
  *
  */
 static void string(Compiler* compiler, bool canAssign __attribute__((unused))) {
-    emitConstant( compiler, OBJ_VAL(copyString(compiler->parser->previous.start + 1,
-                                     compiler->parser->previous.length -2)) );
+    emitConstant( compiler, OBJ_VAL(copyString(compiler->parser->vm,
+                                               compiler->parser->previous.start + 1,
+                                               compiler->parser->previous.length -2)) );
 }
 
 /**
@@ -1391,10 +1393,7 @@ static void printStatement(Compiler* compiler) {
  * @brief Method to handle import statements
  */
 static void importStatement(Compiler* compiler) {
-    consume(compiler, TOKEN_STRING, "Expect filepath after import");
-    emitConstant(compiler, OBJ_VAL(
-        copyString(compiler->parser->previous.start + 1, compiler->parser->previous.length - 2)));
-    // expression();
+    expression(compiler);
     consume(compiler, TOKEN_SEMICOLON, "Expect ';' after import path.");
     emitByte(compiler, OP_IMPORT);
 }
@@ -1547,10 +1546,10 @@ ObjFunction* compile(const char *source) {
     return parser.hadError ? NULL : function;
 }
 
-void markCompilerRoots(VM vm) {
+void markCompilerRoots(VM* vm) {
     Compiler* compiler = vm->compiler;
     while (compiler != NULL) {
-        markObject((Obj*)compiler->function); 
+        markObject(vm, (Obj*)compiler->function);
         compiler = compiler->enclosing;
     }
 }

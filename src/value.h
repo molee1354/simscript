@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "SVM.h"
 
 /**
  * @brief Struct to define the state shared by all Obj types
@@ -142,14 +143,14 @@ void initValueArray(ValueArray* array);
  * @param value Value to write
  *
  */
-void writeValueArray(ValueArray* array, Value value);
+void writeValueArray(VM* vm, ValueArray* array, Value value);
     
 /**
  * @brief Method to free the value array
  * @param array Pointer to value array
  *
  */
-void freeValueArray(ValueArray* array);
+void freeValueArray(VM* vm, ValueArray* array);
 
 /**
  * @brief Method to print a given value of type Value

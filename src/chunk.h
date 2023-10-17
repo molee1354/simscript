@@ -76,7 +76,7 @@ typedef struct {
  * @param chunk a pointer to a Chunk struct
  *
  */
-void initChunk( Chunk* chunk );
+void initChunk( VM* vm, Chunk* chunk );
 
 /**
  * @brief Method to append a byte to the end of the chunk
@@ -85,7 +85,7 @@ void initChunk( Chunk* chunk );
  * @param line The line number where the instruction is written
  *
  */
-void writeChunk( Chunk* chunk, uint8_t byte, int line );
+void writeChunk( VM* vm, Chunk* chunk, uint8_t byte, int line );
 
 /**
  * @brief Method to add a constant to the constants pool (array)
@@ -94,13 +94,13 @@ void writeChunk( Chunk* chunk, uint8_t byte, int line );
  * @return int The index value where the added value lives
  *
  */
-int addConstant( Chunk* chunk, Value value );
+int addConstant( VM* vm, Chunk* chunk, Value value );
 
 /**
  * @brief Method to free the chunk pointer
  * @param chunk The chunk to free
  *
  */
-void freeChunk( Chunk* chunk );
+void freeChunk( VM* vm, Chunk* chunk );
 
 #endif
