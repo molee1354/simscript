@@ -1320,19 +1320,23 @@ static void returnStatement() {
  * @brief Method to handle while statements
  */
 static void whileStatement() {
-    int loopStart = currentChunk()->count;
+    Loop loop;
+    loop.start = currentChunk()->count;
+    loop.scopeDepth = current->scopeDepth;
+    loop.enclosing = current->loop;
+    current->loop = &loop;
+
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after 'while'.");
 
-    int exitJump = emitJump(OP_JUMP_IF_FALSE);
+    current->loop->end = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP);
+    current->loop->body = current->function->chunk.count;
     statement();
 
-    emitLoop(loopStart);
-
-    patchJump(exitJump);
-    emitByte(OP_POP);
+    emitLoop(loop.start);
+    endLoop();
 }
 
 /**
