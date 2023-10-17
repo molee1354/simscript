@@ -22,7 +22,7 @@ void disassembleChunk(Chunk *chunk, const char *name) {
  */
 static int constantInstruction(const char* name, Chunk* chunk, int offset) {
     uint8_t constant = chunk->code[offset+1];
-    printf("%-16s %4d '", name, constant);
+    printf("\033[0;32m%-16s\033[0m %4d '", name, constant);
     printValue(chunk->constants.values[constant]);
     printf("'\n");
 
@@ -34,7 +34,7 @@ static int constantInstruction(const char* name, Chunk* chunk, int offset) {
 static int invokeInstruction(const char* name, Chunk* chunk, int offset) {
     uint8_t constant = chunk->code[offset+1];
     uint8_t argCount = chunk->code[offset+2];
-    printf("%-16s (%d args) %4d '", name, argCount, constant);
+    printf("\033[0;32m%-16s\033[0m (%d args) %4d '", name, argCount, constant);
     printValue(chunk->constants.values[constant]);
     printf("'\n");
     return offset+3;
@@ -49,7 +49,7 @@ static int invokeInstruction(const char* name, Chunk* chunk, int offset) {
  * 
  */
 static int simpleInstruction(const char* name, int offset) {
-    printf("%s\n", name);
+    printf("\033[0;32m%s\033[0m\n", name);
     return offset+1;
 }
 
@@ -64,7 +64,7 @@ static int simpleInstruction(const char* name, int offset) {
  */
 static int byteInstruction(const char* name, Chunk* chunk, int offset) {
     uint8_t slot = chunk->code[offset+1];
-    printf("%-16s %4d\n", name, slot);
+    printf("\033[0;32m%-16s\033[0m %4d\n", name, slot);
     return offset+2;
 }
 
@@ -81,7 +81,7 @@ static int jumpInstruction(const char* name, int sign, Chunk* chunk,
                            int offset) {
     uint16_t jump = (uint16_t)(chunk->code[offset+1] << 8);
     jump |= chunk->code[offset+2];
-    printf("%-16s %4d -> %d\n", name, offset,
+    printf("\033[0;32m%-16s\033[0m %4d -> %d\n", name, offset,
             offset+3+sign*jump);
     return offset+3;
 }
@@ -144,6 +144,11 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_DIVIDE", offset);
         case OP_MOD:
             return simpleInstruction("OP_MOD", offset);
+
+        case OP_INCREMENT:
+            return simpleInstruction("OP_INCREMENT", offset);
+        case OP_DECREMENT:
+            return simpleInstruction("OP_DECREMENT", offset);
 
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);
