@@ -987,7 +987,7 @@ static void expression(Compiler* compiler) {
  * @param type The type of function to compile
  */
 static void beginFunction(Compiler* compiler, Compiler* funcCompiler, FunctionType type) {
-    initCompiler(compiler->parser, compiler, funcCompiler, type);
+    initCompiler(compiler->parser, funcCompiler, compiler, type);
     beginScope(funcCompiler);
 
     consume(funcCompiler, TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -1527,8 +1527,9 @@ static void statement(Compiler* compiler) {
     }
 }
 
-ObjFunction* compile(const char *source) {
+ObjFunction* compile(VM* vm, const char *source) {
     Parser parser;
+    parser.vm = vm;
     parser.hadError = false;
     parser.panicMode = false;
     initScanner(source);

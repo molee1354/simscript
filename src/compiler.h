@@ -127,7 +127,7 @@ typedef struct {
  * @param chunk Chunk to write to
  * @return True if the parser encountered an error
  */
-ObjFunction* compile(const char* source);
+ObjFunction* compile(VM* vm, const char* source);
 
 /**
  * @brief Method to mark the compiler root
