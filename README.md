@@ -1,20 +1,18 @@
-# simscript `v0.0.1`
+# simscript `v0.0.2`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.1`](#simscript-v001)
+- [simscript `v0.0.2`](#simscript-v002)
   - [Table of Contents](#table-of-contents)
   - [Setup](#setup)
     - [Dependencies](#dependencies)
     - [Installation](#installation)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Added built-in functions](#added-built-in-functions)
-    - [Constant Variables](#constant-variables)
-    - [Strictly Local Variables](#strictly-local-variables)
-    - [`+` Operator Overload](#-operator-overload)
+    - [Added New Operators](#added-new-operators)
+    - [Optimizations](#optimizations)
   - [Documentation](#documentation)
 
 ## Setup
@@ -88,28 +86,16 @@ and call the file directly from the terminal.
 
 ## Current Release
 
-Here are some new features in version (`v0.0.1`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.2`). A full log of releases can be found [here](./docs/release.md).
+Version `v0.0.2` is rather a smaller update focused on better loop usability and further optimizations.
 
-### Added built-in functions
+### Added New Operators
 
-New built-in functions are added. Their specific usage can be found [here](./docs/functions.md).
+Simscript now has support for *operation and assignment* operators (`+=`, `-=`, `*=`, `/=`), and increment/decrement operators (`++`, `--`). Have fun writing cleaner for-loops.
 
-- `sleep()`
-- `exit()`
-- `system()`
-- `puts()`
+### Optimizations
 
-### Constant Variables
-
-The `const` keyword that allows for the creation of constant variables that cannot be reassigned. Their usage can be found in the [documentation](./docs/syntax.md).
-
-### Strictly Local Variables
-
-The `let` keyword creates a variable that cannot be accessed in any other scope other than the one it is declared in.
-
-### `+` Operator Overload
-
-The `+` operator can now concatenate `Number` and `String` types into a single string.
+Version `v0.0.2` comes with better [memory optimizations](https://craftinginterpreters.com/optimization.html#nan-boxing) under the hood. While smaller scripts won't be affected as much, the optimizations do come through on a larger scale.
 
 ## Documentation
 
