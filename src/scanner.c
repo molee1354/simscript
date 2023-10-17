@@ -210,21 +210,14 @@ static TokenType identifierType() {
                 switch (scanner.start[1]) {
                     case 'l': return checkKeyword(2,3, "ass", TOKEN_CLASS);
                     case 'o':
-                        if (scanner.current-scanner.start > 2) {
-                            switch (scanner.start[2]) {
-                                case 'n':
-                                    if (scanner.current-scanner.start > 3) {
-                                        switch (scanner.start[3]) {
-                                            case 's':
-                                                return checkKeyword(4,1, "t", TOKEN_CONST);
-                                            case 't':
-                                                return checkKeyword(4,4, "inue", TOKEN_CONTINUE);
-                                        }
-                                    }
-                                    break;
+                        if (scanner.current-scanner.start > 3) {
+                            switch (scanner.start[3]) {
+                                case 's':
+                                    return checkKeyword(4,1, "t", TOKEN_CONST);
+                                case 't':
+                                    return checkKeyword(4,4, "inue", TOKEN_CONTINUE);
                             }
                         }
-                        break;
                 }
             }
             break;
