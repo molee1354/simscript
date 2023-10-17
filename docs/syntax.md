@@ -95,24 +95,20 @@ The common AND and OR operations are supported by the `and` and `or` keywords.
 Simscript supports both FOR and WHILE loops. The syntax for FOR loops is very similar to that of Java's and C's.
 
 ```javascript
-// for
-for (increment variable; end condition; incrementation) {
-    // code to execute
-}
+/* For-loop
+ * for (increment variable; end condition; incrementation) {...}
+ */
+for (var i=0; i<5; i++) { /* do something */ }
 
-// while
-while (end condition) {
-    // code to execute
-}
+/* While-loop
+ * while (end condition) {...}
+ */
+var i = 0;
+while (i<5) { /*do something*/ }
+
 ```
 
-Incrementing the increment variable should be done with the very primitive variable reassingment method:
-
-```javascript
-i = i + 1
-```
-
-And as of [version `v0.0.1`](../README.md), the `break` and `continue` keywords are yet to be implemented.
+And as of [version `v0.0.2`](release.md), the `break` and `continue` keywords are yet to be implemented.
 
 ## Functions
 
@@ -171,7 +167,7 @@ Running this program would result in:
 Bark!
 ```
 
-And as of [version `v0.0.1`](../README.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The `this` keyword can be used (very much like in Java) to refer the current class that is being defined.
+And as of [version `v0.0.2`](release.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The `this` keyword can be used (very much like in Java) to refer the current class that is being defined.
 
 Objects can be created by calling a class constructor, which is simply the class name as a function with the appropriate arguments.
 

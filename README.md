@@ -88,11 +88,11 @@ and call the file directly from the terminal.
 
 ## Current Release
 
-Here are some new features in version (`v0.0.1`).
+Here are some new features in version (`v0.0.1`). A full log of releases can be found [here](./docs/release.md).
 
 ### Added built-in functions
 
-New built-in functions are added. Their specific usage can be found [here](./docs/functions.md)
+New built-in functions are added. Their specific usage can be found [here](./docs/functions.md).
 
 - `sleep()`
 - `exit()`
