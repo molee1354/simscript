@@ -1,5 +1,5 @@
-#ifndef _debug_h
-#define _debug_h
+#ifndef simscript_debug_h
+#define simscript_debug_h
 
 #include "chunk.h"
 

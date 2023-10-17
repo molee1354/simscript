@@ -1,5 +1,5 @@
-#ifndef _scanner_h
-#define _scanner_h
+#ifndef simscript_scanner_h
+#define simscript_scanner_h
 
 
 /**

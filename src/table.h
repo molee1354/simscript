@@ -1,5 +1,5 @@
-#ifndef _table_h
-#define _table_h
+#ifndef simscript_table_h
+#define simscript_table_h
 
 #include "common.h"
 #include "value.h"

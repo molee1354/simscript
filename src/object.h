@@ -1,5 +1,5 @@
-#ifndef _object_h
-#define _object_h
+#ifndef simscript_object_h
+#define simscript_object_h
 
 #include "common.h"
 #include "chunk.h"

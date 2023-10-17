@@ -1,5 +1,5 @@
-#ifndef _value_h
-#define _value_h
+#ifndef simscript_value_h
+#define simscript_value_h
 
 #include <string.h>
 

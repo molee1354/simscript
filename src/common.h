@@ -1,5 +1,5 @@
-#ifndef _common_h
-#define _common_h
+#ifndef simscript_common_h
+#define simscript_common_h
 
 #include <stdbool.h>
 #include <stddef.h>

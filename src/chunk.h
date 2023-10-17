@@ -1,5 +1,5 @@
-#ifndef _chunk_h
-#define _chunk_h
+#ifndef simscript_chunk_h
+#define simscript_chunk_h
 
 #include "common.h"
 #include "value.h"
