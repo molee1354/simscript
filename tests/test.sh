@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PROG="./simscript_old"
+PROG="./simscript"
 TESTS="./tests/*.ss"
 TEMP="stderr.temp"
 
