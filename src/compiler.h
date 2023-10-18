@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
     Token name;
     int depth;       // Depth of local variable
+
     bool isConst;    // if variable is declared constant
     bool isScoped;   // if variable is strictly local
     bool isCaptured; // true if local is captured by any later nested func dec
@@ -85,7 +86,19 @@ typedef enum {
 } FunctionType;
 
 /**
- * @brief Struct for holding the list of local variables
+ * @brief Struct for holding Loops
+ *
+ */
+typedef struct Loop {
+    struct Loop* enclosing;
+    int start;
+    int body;
+    int end;
+    int scopeDepth;
+} Loop;
+
+/**
+ * @brief Compiler struct
  *
  */
 typedef struct Compiler {
@@ -94,6 +107,8 @@ typedef struct Compiler {
     // Setting up an implicit top-level function
     ObjFunction* function;
     FunctionType type;
+
+    Loop* loop;                    // Loop state
 
     Local locals[UINT8_COUNT];
     int localCount;                // The number of local variables

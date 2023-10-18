@@ -721,13 +721,6 @@ static InterpretResult run() {
                 printf("\n");
                 break;
             }
-            case OP_IMPORT: {
-                printf("Import statements not implemented in v0.0.1.\nPath: ");
-                printValue(pop());
-                printf("\n");
-                break;
-                break;
-            }
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();
                 frame->ip += offset;

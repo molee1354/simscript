@@ -1,7 +1,23 @@
 
 # Releases History
 
-## Current Release `v0.0.2`
+## Current Release `v0.0.3`
+
+Version `v0.0.3` comes with some impactful syntax updates, along with some changes to the compiler to support it.
+
+### Loop keywords: `break` and `continue`
+
+Trying to do anything in a programming language without loops is quite discouraging. Now, your friends won't make fun of you for not having `break` and `continue` keywords in your language! The syntax is very much like any other language: add either the `break` or `continue` keyword within the loop along with just an added semicolon `;` at the end. Specifics on the syntax can be found in the [docs](syntax.md).
+
+### Feature Testing
+
+While this is much more geared towards *developing* Simscript rather than using it, it should play an important role in communicating the current state of Simscript. Expanding on this feature should add much more to the language in the future.
+
+### Branches
+
+The program state at the `dev` branch will always be *backwards-compatible*, meaning that the newest Simscript binary compiled from the code in the `dev` branch will be able to (mostly) run the source code for previous versions. Assuming that there were no major syntax updates, the "rolling release" version of Simscript should be backwards-compatible, but you must bear in mind the potential breakages that will occur from new features.
+
+## Version `v0.0.2`
 
 Version `v0.0.2` is rather a smaller update focused on better loop usability and further optimizations.
 

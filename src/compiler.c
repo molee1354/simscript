@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "memory.h"
 #include "object.h"
+#include "scanner.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -237,6 +238,8 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
         current->function->name = copyString(parser.previous.start,
                                              parser.previous.length);
     }
+
+    compiler->loop = NULL;
 
     // compiler implicitly claims stack slot 0 for VM use
     Local* local = &current->locals[current->localCount++];
@@ -776,7 +779,6 @@ ParseRule rules[] = {
     [TOKEN_NULL]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
     [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_IMPORT]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SUPER]         = {super_,   NULL,   PREC_NONE},
     [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
@@ -1116,6 +1118,90 @@ static void expressionStatement() {
 }
 
 /**
+ * @brief Method to get the argument count of a given OpCode
+ *
+ * @param code 
+ * @param constants 
+ * @param ip 
+ * @return 
+ */
+static int getArgCount(uint8_t *code, const ValueArray constants, int ip) {
+    switch (code[ip]) {
+        case OP_NULL:
+        case OP_TRUE:
+        case OP_FALSE:
+        case OP_POP:
+        case OP_EQUAL:
+        case OP_GREATER:
+        case OP_LESS:
+        case OP_ADD:
+        case OP_SUBTRACT:
+        case OP_MULTIPLY:
+        case OP_DIVIDE:
+        case OP_MOD:
+        case OP_NOT:
+        case OP_NEGATE:
+        case OP_CLOSE_UPVALUE:
+        case OP_RETURN:
+        case OP_BREAK:
+            return 0;
+
+        case OP_CONSTANT:
+        case OP_GET_LOCAL:
+        case OP_SET_LOCAL:
+        case OP_GET_GLOBAL:
+        case OP_GET_UPVALUE:
+        case OP_SET_UPVALUE:
+        case OP_GET_SUPER:
+        case OP_METHOD:
+            return 1;
+
+        case OP_JUMP:
+        case OP_JUMP_IF_FALSE:
+        case OP_LOOP:
+        case OP_CLASS:
+        case OP_CALL:
+            return 2;
+
+        case OP_INVOKE:
+        case OP_SUPER_INVOKE:
+            return 3;
+
+        case OP_CLOSURE: {
+            int constant = code[ip + 1];
+            ObjFunction* loadedFn = AS_FUNCTION(constants.values[constant]);
+
+            // There is one byte for the constant, then two for each upvalue.
+            return 1 + (loadedFn->upvalueCount * 2);
+        }
+    }
+
+    return 0;
+}
+/**
+ * @brief Method to end a loop
+ *
+ */
+static void endLoop() {
+    if (current->loop->end != -1) {
+        patchJump(current->loop->end);
+        emitByte(OP_POP);
+    }
+
+    int i = current->loop->body;
+    while (i < current->function->chunk.count) {
+        if (current->function->chunk.code[i] == OP_BREAK) {
+            current->function->chunk.code[i] = OP_JUMP;
+            patchJump(i+1);
+            i+=3;
+        } else {
+            i += 1 + getArgCount(current->function->chunk.code,
+                                 current->function->chunk.constants, i);
+        }
+    }
+    current->loop = current->loop->enclosing;
+}
+/**
  * @brief Method to parse through for statements
  */
 static void forStatement() {
@@ -1131,16 +1217,20 @@ static void forStatement() {
         expressionStatement();
     }
 
-    int loopStart = currentChunk()->count;
+    Loop loop;
+    loop.start = currentChunk()->count;
+    loop.scopeDepth = current->scopeDepth;
+    loop.enclosing = current->loop;
+    current->loop = &loop;
 
     // condition clause
-    int exitJump = -1;
+    current->loop->end = -1;
     if (!match(TOKEN_SEMICOLON)) {
         expression();
         consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
 
         // exit loop if condition is false
-        exitJump = emitJump(OP_JUMP_IF_FALSE);
+        current->loop->end = emitJump(OP_JUMP_IF_FALSE);
         emitByte(OP_POP);
     }
 
@@ -1152,19 +1242,61 @@ static void forStatement() {
         emitByte(OP_POP);
         consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 
-        emitLoop(loopStart);
-        loopStart = incrementStart;
+        emitLoop(current->loop->start);
+        current->loop->start = incrementStart;
         patchJump(bodyJump);
     }
     
+    current->loop->body = current->function->chunk.count;
     statement();
-    emitLoop(loopStart);
+    emitLoop(current->loop->start);
 
-    if (exitJump != -1) {
-        patchJump(exitJump);
-        emitByte(OP_POP);
-    }
+    endLoop();
     endScope();
+}
+
+static void breakStatement() {
+    if (current->loop == NULL) {
+        error("'break' statements can only be used in a loop.");
+        return;
+    }
+
+    consume(TOKEN_SEMICOLON, "Expected ';' after 'break'.");
+
+    // getting rid of locals in the loop scope
+    for (int i = current->localCount - 1;
+         i >= 0 && current->locals[i].depth > current->loop->scopeDepth;
+         i--) {
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else {
+            emitByte(OP_POP);
+        }
+    }
+    emitJump(OP_BREAK);
+}
+
+static void continueStatement() {
+    if (current->loop == NULL) {
+        error("'continue' statements can only be used in a loop.");
+        return;
+    }
+
+    consume(TOKEN_SEMICOLON, "Expected ';' after 'continue'.");
+
+    // getting rid of locals in the loop scope
+    for (int i = current->localCount - 1;
+         i >= 0 && current->locals[i].depth > current->loop->scopeDepth;
+         i--) {
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else {
+            emitByte(OP_POP);
+        }
+    }
+
+    // go back to the current loop start
+    emitLoop(current->loop->start);
 }
 
 /**
@@ -1197,18 +1329,6 @@ static void printStatement() {
 }
 
 /**
- * @brief Method to handle import statements
- */
-static void importStatement() {
-    consume(TOKEN_STRING, "Expect filepath after import");
-    emitConstant(OBJ_VAL(
-        copyString(parser.previous.start + 1, parser.previous.length - 2)));
-    // expression();
-    consume(TOKEN_SEMICOLON, "Expect ';' after import path.");
-    emitByte(OP_IMPORT);
-}
-
-/**
  * @brief Method to handle return statements
  */
 static void returnStatement() {
@@ -1231,19 +1351,23 @@ static void returnStatement() {
  * @brief Method to handle while statements
  */
 static void whileStatement() {
-    int loopStart = currentChunk()->count;
+    Loop loop;
+    loop.start = currentChunk()->count;
+    loop.scopeDepth = current->scopeDepth;
+    loop.enclosing = current->loop;
+    current->loop = &loop;
+
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after 'while'.");
 
-    int exitJump = emitJump(OP_JUMP_IF_FALSE);
+    current->loop->end = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP);
+    current->loop->body = current->function->chunk.count;
     statement();
 
-    emitLoop(loopStart);
-
-    patchJump(exitJump);
-    emitByte(OP_POP);
+    emitLoop(loop.start);
+    endLoop();
 }
 
 /**
@@ -1310,8 +1434,6 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
-    } else if (match(TOKEN_IMPORT)) {
-        importStatement();
     } else if (match(TOKEN_FOR)) {
         forStatement();
     } else if (match(TOKEN_IF)) {
@@ -1320,6 +1442,10 @@ static void statement() {
         returnStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();
+    } else if (match(TOKEN_BREAK)) {
+        breakStatement();
+    } else if (match(TOKEN_CONTINUE)) {
+        continueStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope();
         block();
