@@ -34,14 +34,14 @@ typedef enum {
     TOKEN_IMPORT, TOKEN_BREAK, TOKEN_CONTINUE,
 
     TOKEN_ERROR, TOKEN_EOF
-} TokenType;
+} Tokentype;
 
 /**
  * @brief Token struct to hold the token defintion
  *
  */
 typedef struct {
-    TokenType type;
+    Tokentype type;
     const char* start;
     int length;
     int line;

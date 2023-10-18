@@ -100,7 +100,7 @@ static bool match(char expected) {
  *
  * @return Token new token
  */
-static Token makeToken(TokenType type) {
+static Token makeToken(Tokentype type) {
     Token token;
     token.type = type;
     token.start = scanner.start;
@@ -183,11 +183,11 @@ static void skipWhiteSpace() {
  * @param rest The remainder of the keyword after the first letter
  * @param type Type of token to return based on keyword
  *
- * @return TokenType The corresponding TokenType for the identifier token.
+ * @return Tokentype The corresponding Tokentype for the identifier token.
  * Returns TOKEN_IDENTIFIER if no matches occur.
  */
-static TokenType checkKeyword(int start, int length, 
-        const char* rest, TokenType type) {
+static Tokentype checkKeyword(int start, int length, 
+        const char* rest, Tokentype type) {
     if (scanner.current - scanner.start == start + length &&
         memcmp(scanner.start + start, rest, length) == 0) {
         return type;
@@ -198,9 +198,9 @@ static TokenType checkKeyword(int start, int length,
 /**
  * @brief Method to return the correct identifier type
  *
- * @return TokenType identifier token type
+ * @return Tokentype identifier token type
  */
-static TokenType identifierType() {
+static Tokentype identifierType() {
 
     switch (scanner.start[0]) {
         case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);

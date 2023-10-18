@@ -94,7 +94,7 @@ static void advance() {
  * @param message Error message to be emitted
  * 
  */
-static void consume(TokenType type, const char* message) {
+static void consume(Tokentype type, const char* message) {
     if (parser.current.type==type) {
         advance();
         return;
@@ -109,7 +109,7 @@ static void consume(TokenType type, const char* message) {
  * @param type The type to match 
  * @return True if the types match
  */
-static bool check(TokenType type) {
+static bool check(Tokentype type) {
     return parser.current.type == type;
 }
 
@@ -119,7 +119,7 @@ static bool check(TokenType type) {
  * @param type The type to match
  * @return True if the types match
  */
-static bool match(TokenType type) {
+static bool match(Tokentype type) {
     if (!check(type)) return false;
     advance();
     return true;
@@ -307,7 +307,7 @@ static void endScope() {
 static void expression();
 static void statement();
 static void declaration();
-static ParseRule* getRule(TokenType type);
+static ParseRule* getRule(Tokentype type);
 static void parsePrecedence(Precedence precedence);
 
 
@@ -443,7 +443,7 @@ static void addLocal(Token name, bool isConst, bool isScoped) {
  *
  */
 static void binary(bool canAssign __attribute__((unused)) ) {
-    TokenType operatorType = parser.previous.type;
+    Tokentype operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
     parsePrecedence( (Precedence)(rule->precedence + 1) );
 
@@ -720,7 +720,7 @@ static void this_(bool canAssign __attribute__((unused))) {
  *
  */
 static void unary(bool canAssign __attribute__((unused))) {
-    TokenType operatorType = parser.previous.type;
+    Tokentype operatorType = parser.previous.type;
 
     // compiling the operand
     parsePrecedence(PREC_UNARY);
@@ -906,7 +906,7 @@ static uint8_t argumentList() {
  * lookup is wrapped in a function.
  *
  */
-static ParseRule* getRule(TokenType type) {
+static ParseRule* getRule(Tokentype type) {
     return &rules[type];
 }
 
