@@ -9,6 +9,7 @@
  *
  */
 typedef struct {
+    VM* vm;
     Token current;
     Token previous;
 
@@ -29,22 +30,6 @@ typedef enum {
     PREC_CALL,        // . ()
     PREC_PRIMARY
 } Precedence;
-
-/**
- * @brief ParseFn is a simple typedef for a function with no args and no return
- *
- */
-typedef void (*ParseFn)(bool canAssign);
-
-/**
- * @brief Wrapper for a single row in the parser table
- *
- */
-typedef struct {
-    ParseFn prefix;
-    ParseFn infix;
-    Precedence precedence;
-} ParseRule;
 
 /**
  * @brief Struct for local variable
@@ -75,17 +60,6 @@ typedef struct {
 } Upvalue;
 
 /**
- * @brief Enum to hold the different types of functions
- *
- */
-typedef enum {
-    TYPE_FUNCTION,
-    TYPE_INITIALIZER,
-    TYPE_METHOD,
-    TYPE_SCRIPT,
-} FunctionType;
-
-/**
  * @brief Struct for holding Loops
  *
  */
@@ -98,26 +72,6 @@ typedef struct Loop {
 } Loop;
 
 /**
- * @brief Compiler struct
- *
- */
-typedef struct Compiler {
-    struct Compiler* enclosing;
-
-    // Setting up an implicit top-level function
-    ObjFunction* function;
-    FunctionType type;
-
-    Loop* loop;                    // Loop state
-
-    Local locals[UINT8_COUNT];
-    int localCount;                // The number of local variables
-
-    Upvalue upvalues[UINT8_COUNT]; // Upvalue array
-    int scopeDepth;                // The depth of the scope (0 for global)
-} Compiler;
-
-/**
  * @class ClassCompiler
  * @brief Class compiler holding information about the current enclosing class
  *
@@ -128,18 +82,57 @@ typedef struct ClassCompiler {
 } ClassCompiler;
 
 /**
+ * @brief Compiler struct
+ *
+ */
+typedef struct Compiler {
+    struct Compiler* enclosing;
+    Parser* parser;                // Current parser
+
+    Loop* loop;                    // Loop state
+
+    ClassCompiler* klass;
+
+    // Setting up an implicit top-level function
+    ObjFunction* function;
+    FunctionType type;
+
+    Local locals[UINT8_COUNT];
+    int localCount;                // The number of local variables
+
+    Upvalue upvalues[UINT8_COUNT]; // Upvalue array
+    int scopeDepth;                // The depth of the scope (0 for global)
+} Compiler;
+
+/**
+ * @brief ParseFn is a simple typedef for a function with no args and no return
+ *
+ */
+typedef void (*ParseFn)(Compiler* compiler, bool canAssign);
+
+/**
+ * @brief Wrapper for a single row in the parser table
+ *
+ */
+typedef struct {
+    ParseFn prefix;
+    ParseFn infix;
+    Precedence precedence;
+} ParseRule;
+
+/**
  * @brief Method to compile source code
  *
  * @param source Source code from input stream
  * @param chunk Chunk to write to
  * @return True if the parser encountered an error
  */
-ObjFunction* compile(const char* source);
+ObjFunction* compile(VM* vm, const char* source);
 
 /**
  * @brief Method to mark the compiler root
  *
  */
-void markCompilerRoots();
+void markCompilerRoots(VM* vm);
 
 #endif

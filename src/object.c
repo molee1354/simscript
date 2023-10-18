@@ -11,8 +11,8 @@
  * @brief Macro wrapper to allocateObject wrapper. Casts output to type
  *
  */
-#define ALLOCATE_OBJ(type, objectType) \
-    (type*)allocateObject(sizeof(type), objectType)
+#define ALLOCATE_OBJ(vm, type, objectType) \
+    (type*)allocateObject(vm, sizeof(type), objectType)
 
 /**
  * @brief Method to allocate memory for an Obj struct on the heap
@@ -21,65 +21,66 @@
  * @param type ObjType type of Obj
  * @return Obj* Pointer to an Obj struct
  */
-static Obj* allocateObject(size_t size, ObjType type) {
-    Obj* object = (Obj*)reallocate(NULL, 0, size);
+static Obj* allocateObject(VM* vm, size_t size, ObjType type) {
+    Obj* object = (Obj*)reallocate(vm, NULL, 0, size);
     object->type = type;
     object->isMarked = false;
 
     // inserting the allocated object into the list
-    object->next = vm.objects; // setting next of new head to old head
-    vm.objects = object; // setting new head to new object
+    object->next = vm->objects; // setting next of new head to old head
+    vm->objects = object; // setting new head to new object
 #ifdef DEBUG_LOG_GC
     printf("%p allocate %zu for %d\n", (void*)object, size, type);
 #endif
     return object;
 }
 
-ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
-    ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+ObjBoundMethod* newBoundMethod(VM* vm, Value receiver, ObjClosure* method) {
+    ObjBoundMethod* bound = ALLOCATE_OBJ(vm, ObjBoundMethod, OBJ_BOUND_METHOD);
     bound->receiver = receiver;
     bound->method = method;
     return bound;
 }
 
-ObjClass* newClass(ObjString* name) {
-    ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+ObjClass* newClass(VM* vm, ObjString* name) {
+    ObjClass* klass = ALLOCATE_OBJ(vm, ObjClass, OBJ_CLASS);
     klass->name = name;
     initTable(&klass->methods);
     return klass;
 }
 
-ObjClosure* newClosure(ObjFunction* function) {
-    ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
+ObjClosure* newClosure(VM* vm, ObjFunction* function) {
+    ObjUpvalue** upvalues = ALLOCATE(vm, ObjUpvalue*, function->upvalueCount);
     for (int i=0; i < function->upvalueCount; i++) {
         upvalues[i] = NULL;
     }
 
-    ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
+    ObjClosure* closure = ALLOCATE_OBJ(vm, ObjClosure, OBJ_CLOSURE);
     closure->function = function;
     closure->upvalues = upvalues;
     closure->upvalueCount = function->upvalueCount;
     return closure;
 }
 
-ObjFunction* newFunction() {
-    ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
+ObjFunction* newFunction(VM* vm, FunctionType type) {
+    ObjFunction* function = ALLOCATE_OBJ(vm, ObjFunction, OBJ_FUNCTION);
     function->params = 0;
     function->upvalueCount = 0;
     function->name = NULL;
-    initChunk(&function->chunk);
+    function->type = type;
+    initChunk(vm, &function->chunk);
     return function;
 }
 
-ObjInstance* newInstance(ObjClass* klass) {
-    ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+ObjInstance* newInstance(VM* vm, ObjClass* klass) {
+    ObjInstance* instance = ALLOCATE_OBJ(vm, ObjInstance, OBJ_INSTANCE);
     instance->klass = klass;
     initTable(&instance->fields);
     return instance;
 }
 
-ObjNative* newNative(NativeFn function) {
-    ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+ObjNative* newNative(VM* vm, NativeFn function) {
+    ObjNative* native = ALLOCATE_OBJ(vm, ObjNative, OBJ_NATIVE);
     native->function = function;
     return native;
 }
@@ -92,17 +93,17 @@ ObjNative* newNative(NativeFn function) {
  * @param hash Hash code for the string
  * @return ObjString* Pointer to the ObjString object
  */
-static ObjString* allocateString(char* chars, int length, uint32_t hash) {
-    ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
+static ObjString* allocateString(VM* vm, char* chars, int length, uint32_t hash) {
+    ObjString* string = ALLOCATE_OBJ(vm, ObjString, OBJ_STRING);
     string->length = length;
     string->chars = chars;
     string->hash = hash;
 
-    push(OBJ_VAL(string));
+    push(vm, OBJ_VAL(string));
 
     // we only care about the keys, so values are NULL
-    tableSet(&vm.strings, string, NULL_VAL);
-    pop();
+    tableSet(vm, &vm->strings, string, NULL_VAL);
+    pop(vm);
     return string;
 }
 
@@ -122,34 +123,34 @@ static uint32_t hashString(const char* key, int length) {
     return hash;
 }
 
-ObjString* takeString(char* chars, int length) {
+ObjString* takeString(VM* vm, char* chars, int length) {
     uint32_t hash = hashString(chars, length); // calculate hash code for string
                                                //
     // look for string in string table
-    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+    ObjString* interned = tableFindString(&vm->strings, chars, length, hash);
     if (interned != NULL) {
         // if found, we free before we return it since this function
         // is the owner and we don't need the string
-        FREE_ARRAY(char, chars, length+1);
+        FREE_ARRAY(vm, char, chars, length+1);
         return interned;
     }
-    return allocateString(chars, length, hash);
+    return allocateString(vm, chars, length, hash);
 }
 
-ObjString* copyString(const char* chars, int length) {
+ObjString* copyString(VM* vm, const char* chars, int length) {
     uint32_t hash = hashString(chars, length);
 
-    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+    ObjString* interned = tableFindString(&vm->strings, chars, length, hash);
     if (interned != NULL) return interned;
 
-    char* heapChars = ALLOCATE(char, length+1);
+    char* heapChars = ALLOCATE(vm, char, length+1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0';
-    return allocateString(heapChars, length, hash);
+    return allocateString(vm, heapChars, length, hash);
 }
 
-ObjUpvalue* newUpvalue(Value* slot) {
-    ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+ObjUpvalue* newUpvalue(VM* vm, Value* slot) {
+    ObjUpvalue* upvalue = ALLOCATE_OBJ(vm, ObjUpvalue, OBJ_UPVALUE);
     upvalue->closed = NULL_VAL;
     upvalue->location = slot;
     upvalue->next = NULL;
