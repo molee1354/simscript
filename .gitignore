@@ -5,4 +5,5 @@ obj/
 
 # ignoring top-level binaries
 simscript
+!bin/simscript
 .util
