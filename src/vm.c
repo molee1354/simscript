@@ -219,6 +219,7 @@ void freeVM(VM* vm) {
     freeTable(vm, &vm->strings);
     vm->initString = NULL;
     freeObjects(vm);
+    free(vm);
 }
 
 void push(VM* vm, Value value) {
