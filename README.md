@@ -6,6 +6,7 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
 
 - [simscript `v0.0.4`](#simscript-v004)
   - [Table of Contents](#table-of-contents)
+  - [Download](#download)
   - [Setup](#setup)
     - [Dependencies](#dependencies)
     - [Building](#building)
@@ -15,11 +16,13 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Version Check](#version-check)
   - [Documentation](#documentation)
 
+## Download
+
+Download the pre-compiled binaries from the [downloads page](./docs/downloads.md).
+
 ## Setup
 
 Setting up simscript can be done in just a few steps.
-
-If you don't want to bother with compiling the binary, you can also download the pre-compiled binaries from the [downloads page](./docs/downloads.md).
 
 ### Dependencies
 
