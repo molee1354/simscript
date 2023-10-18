@@ -1,18 +1,19 @@
-# simscript `v0.0.2`
+# simscript `v0.0.3`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.2`](#simscript-v002)
+- [simscript `v0.0.3`](#simscript-v003)
   - [Table of Contents](#table-of-contents)
   - [Setup](#setup)
     - [Dependencies](#dependencies)
     - [Installation](#installation)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Added New Operators](#added-new-operators)
-    - [Optimizations](#optimizations)
+    - [Loop keywords: `break` and `continue`](#loop-keywords-break-and-continue)
+    - [Feature Testing](#feature-testing)
+    - [Branches](#branches)
   - [Documentation](#documentation)
 
 ## Setup
@@ -32,7 +33,7 @@ Simscript uses `make` for building and `gcc` for code compilation.
 
 ### Installation
 
-Clone the git repostitory to your local machine
+Clone the git repostitory
 
 ```shell
 git clone https://github.com/molee1354/simscript.git
@@ -67,7 +68,7 @@ You should be able to run Simscript from either of the compiled binaries. Call t
 ./simscript
 
 # running a source file
-./simscript file.ss
+./simscript path/to/file.ss
 ```
 
 Simscript can also be used to run files straight from the terminal if the path to the interpreter is known. Add a `#!` and the path to the Simscript binary in the first line of the file,
@@ -75,27 +76,32 @@ Simscript can also be used to run files straight from the terminal if the path t
 ```javascript
 #!/path/to/simscript
 
-print "Hello World!";
+echo "Hello World!";
 ```
 
 and call the file directly from the terminal.
 
 ```shell
-./filename
+path/to/script.ss
 ```
 
 ## Current Release
 
-Here are some new features in version (`v0.0.2`). A full log of releases can be found [here](./docs/release.md).
-Version `v0.0.2` is rather a smaller update focused on better loop usability and further optimizations.
+Here are some new features in version (`v0.0.3`). A full log of releases can be found [here](./docs/release.md).
 
-### Added New Operators
+Version `v0.0.3` comes with some impactful syntax updates, along with some changes to the compiler to support it.
 
-Simscript now has support for *operation and assignment* operators (`+=`, `-=`, `*=`, `/=`), and increment/decrement operators (`++`, `--`). Have fun writing cleaner for-loops.
+### Loop keywords: `break` and `continue`
 
-### Optimizations
+Trying to do anything in a programming language without loops is quite discouraging. Now, your friends won't make fun of you for not having `break` and `continue` keywords in your language! The syntax is very much like any other language: add either the `break` or `continue` keyword within the loop along with just an added semicolon `;` at the end. Specifics on the syntax can be found in the [docs](./docs/syntax.md).
 
-Version `v0.0.2` comes with better [memory optimizations](https://craftinginterpreters.com/optimization.html#nan-boxing) under the hood. While smaller scripts won't be affected as much, the optimizations do come through on a larger scale.
+### Feature Testing
+
+While this is much more geared towards *developing* Simscript rather than using it, it should play an important role in communicating the current state of Simscript. Expanding on this feature should add much more to the language in the future.
+
+### Branches
+
+The program state at the `dev` branch will always be *backwards-compatible*, meaning that the newest Simscript binary compiled from the code in the `dev` branch will be able to (mostly) run the source code for previous versions. Assuming that there were no major syntax updates, the "rolling release" version of Simscript should be backwards-compatible, but you must bear in mind the potential breakages that will occur from new features.
 
 ## Documentation
 
