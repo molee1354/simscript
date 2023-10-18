@@ -1,10 +1,10 @@
-# simscript `v0.0.6`
+# simscript `v0.0.7`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.6`](#simscript-v006)
+- [simscript `v0.0.7`](#simscript-v007)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
