@@ -32,7 +32,7 @@ function test(iter) {
     return elapsed_time;
 }
 
-const let iterations = 10;
+const let iterations = 5;
 let sum = 0;
 let average;
 for (var i=0; i < iterations; i = 1 + i) {

@@ -25,3 +25,10 @@ function while_loop() {
         n++
     }
 }
+
+function main() {
+    for_loop();
+    while_loop();
+}
+
+main();
