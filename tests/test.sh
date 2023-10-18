@@ -18,17 +18,18 @@ else
 fi
 
 # Prompting for benchmarks
-printf "Should performance benchmarks be run? [y/N] : "
+printf "Should performance benchmarks be skipped? [Y/n] : "
 read SKIP_BENCHMARK
 
 touch ${TEMP}
 
+echo ""
 for TEST in ${TESTS}; do
     CURRENT=$(echo "${TEST}" | grep -Po "tests/test_[0-9]+_\K[a-zA-Z]+")
 
     # Benchmarks
     if [[ ${CURRENT} == "benchmark" ]]; then
-        if [[ ${SKIP_BENCHMARK} != "y" ]]; then
+        if [[ ${SKIP_BENCHMARK} != "n" ]]; then
             continue
         fi
         rm ${TEMP}

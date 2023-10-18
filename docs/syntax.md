@@ -186,7 +186,7 @@ Running this program would result in:
 Bark!
 ```
 
-And as of [version `v0.0.3`](release.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The `this` keyword can be used (very much like in Java) to refer the current class that is being defined.
+And as of [version `v0.0.4`](release.md), there is not a direct way to create properties in a class. Instead, you can use the class constructor or other class methods like in the example above. The `this` keyword can be used (very much like in Java) to refer the current class that is being defined.
 
 Objects can be created by calling a class constructor, which is simply the class name as a function with the appropriate arguments.
 

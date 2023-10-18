@@ -1,11 +1,30 @@
-
 # Releases History
 
-## Current Release `v0.0.3`
+## Current Release `v0.0.4`
+
+**A new Windows executable has been compiled for Simscript in version `v0.0.4`**, along with some minor changes.
+
+### Windows Binary
+
+Starting from version `v0.0.4` a new Windows executable will be uploaded  in the `files` directory as `simscript.exe`. The Windows version always will be up-to-date on the `master` branch, and mostly on the `dev` branch as well.
+
+### Version Check
+
+Running the `simscript` command with the `--version` flag will now show the version number.
+
+```shell
+simscript --version
+
+
+# output
+simscript version vX.X.X
+```
+
+## Version `v0.0.3`
 
 Version `v0.0.3` comes with some impactful syntax updates, along with some changes to the compiler to support it.
 
-### Loop keywords: `break` and `continue`
+### Loop Keywords: `break` and `continue`
 
 Trying to do anything in a programming language without loops is quite discouraging. Now, your friends won't make fun of you for not having `break` and `continue` keywords in your language! The syntax is very much like any other language: add either the `break` or `continue` keyword within the loop along with just an added semicolon `;` at the end. Specifics on the syntax can be found in the [docs](syntax.md).
 
@@ -33,7 +52,7 @@ Version `v0.0.2` comes with better [memory optimizations](https://craftinginterp
 
 Here are some new features in version (`v0.0.1`).
 
-### Added built-in functions
+### Added Built-in Functions
 
 New built-in functions are added. Their specific usage can be found [here](./docs/functions.md)
 

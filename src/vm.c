@@ -4,13 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-// check for platform
-#ifdef _WIN64
-#include <dos.h>
-#else
-#include <unistd.h>
-#endif
-
 #include "chunk.h"
 #include "common.h"
 #include "compiler.h"
@@ -21,6 +14,13 @@
 #include "value.h"
 #include "read.h"
 #include "vm.h"
+
+// check for platform
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
@@ -65,7 +65,11 @@ static Value sleepNative(int argCount, Value* args) {
     /* clock_t timeStart = clock();
     while (clock() < timeStart + waitFor)
         ; */
+#ifdef _WIN32
+    Sleep(waitFor*1000);
+#else
     sleep(waitFor);
+#endif
     return NULL_VAL;
 }
 

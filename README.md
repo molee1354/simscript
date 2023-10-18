@@ -1,24 +1,25 @@
-# simscript `v0.0.3`
+# simscript `v0.0.4`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.3`](#simscript-v003)
+- [simscript `v0.0.4`](#simscript-v004)
   - [Table of Contents](#table-of-contents)
   - [Setup](#setup)
     - [Dependencies](#dependencies)
-    - [Installation](#installation)
+    - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Loop keywords: `break` and `continue`](#loop-keywords-break-and-continue)
-    - [Feature Testing](#feature-testing)
-    - [Branches](#branches)
+    - [Windows Binary](#windows-binary)
+    - [Version Check](#version-check)
   - [Documentation](#documentation)
 
 ## Setup
 
 Setting up simscript can be done in just a few steps.
+
+If you don't want to bother with compiling the binary, you can also download the pre-compiled binaries from the [downloads page](./docs/downloads.md).
 
 ### Dependencies
 
@@ -31,7 +32,7 @@ gcc
 
 Simscript uses `make` for building and `gcc` for code compilation.
 
-### Installation
+### Building
 
 Clone the git repostitory
 
@@ -87,21 +88,25 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.3`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.4`). A full log of releases can be found [here](./docs/release.md).
 
-Version `v0.0.3` comes with some impactful syntax updates, along with some changes to the compiler to support it.
+**A new Windows executable has been compiled for Simscript in version `v0.0.4`**, along with some minor changes.
 
-### Loop keywords: `break` and `continue`
+### Windows Binary
 
-Trying to do anything in a programming language without loops is quite discouraging. Now, your friends won't make fun of you for not having `break` and `continue` keywords in your language! The syntax is very much like any other language: add either the `break` or `continue` keyword within the loop along with just an added semicolon `;` at the end. Specifics on the syntax can be found in the [docs](./docs/syntax.md).
+Starting from version `v0.0.4` a new Windows executable will be uploaded  in the `files` directory as `simscript.exe`. The Windows version always will be up-to-date on the `master` branch, and mostly on the `dev` branch as well.
 
-### Feature Testing
+### Version Check
 
-While this is much more geared towards *developing* Simscript rather than using it, it should play an important role in communicating the current state of Simscript. Expanding on this feature should add much more to the language in the future.
+Running the `simscript` command with the `--version` flag will now show the version number.
 
-### Branches
+```shell
+simscript --version
 
-The program state at the `dev` branch will always be *backwards-compatible*, meaning that the newest Simscript binary compiled from the code in the `dev` branch will be able to (mostly) run the source code for previous versions. Assuming that there were no major syntax updates, the "rolling release" version of Simscript should be backwards-compatible, but you must bear in mind the potential breakages that will occur from new features.
+
+# output
+simscript version vX.X.X
+```
 
 ## Documentation
 
