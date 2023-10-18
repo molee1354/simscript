@@ -1,6 +1,8 @@
 #!/bin/sh
 
 PROG="./simscript"
+VERSIONFILE="src/main.c"
+VERSION=$(cat ${VERSIONFILE} | grep -oP "#define.*?VERSION.*?\"\Kv[0-9].[0-9].[0-9]")
 TESTS="./tests/*.ss"
 TEMP="stderr.temp"
 
@@ -84,3 +86,7 @@ if [[ -e ${TEMP} ]]; then
 fi
 
 echo -e "\nPassed ${PASSED}/${COUNT}"
+
+if [[ ${PASSED} -eq ${COUNT} ]]; then
+    echo "Version ${VERSION} ready to release!"
+fi
