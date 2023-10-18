@@ -8,8 +8,10 @@
 #include "read.h"
 #include "vm.h"
 
+#define VERSION "v0.0.3"
+
 static void repl() {
-    puts("simscript v0.0.1");
+    printf("simscript %s\n", VERSION);
     char line[1024];
     for (;;) {
         printf("\n>>> ");
@@ -29,7 +31,7 @@ static void runFile(const char* path) {
     free(source);
 
     if (result==INTERPRET_COMPILE_ERROR) exit(65);
-    if (result==INTERPRET_COMPILE_ERROR) exit(70);
+    if (result==INTERPRET_RUNTIME_ERROR) exit(70);
 }
 
 int main(int argc, const char* argv[]) {
@@ -39,9 +41,13 @@ int main(int argc, const char* argv[]) {
     if (argc==1) {
         repl();
     } else if (argc==2) {
-        runFile(argv[1]);
+        if (!strcmp(argv[1], "--version")) {
+            printf("simscript version %s\n\n", VERSION);
+        } else {
+            runFile(argv[1]);
+        }
     } else {
-        fprintf(stderr, "Usage: hwin [path]\n");
+        fprintf(stderr, "Usage: simscript [path]\n");
         exit(64);
     }
 
