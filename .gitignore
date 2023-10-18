@@ -1,8 +1,8 @@
 # directories
 obj/
-bin/
 .idea/
 .vscode/
 
-# ignoring binaries
+# ignoring top-level binaries
 simscript
+.util

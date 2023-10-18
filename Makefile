@@ -6,13 +6,12 @@ RELEASE_CFLAGS = -O3
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
-FILEDIR = files
 TESTDIR = tests
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEBUG_TARGET = $(BINDIR)/debug
 RELEASE_TARGET = $(BINDIR)/simscript
-RELEASE_TARGET_WIN = $(FILEDIR)/simscript.exe
+RELEASE_TARGET_WIN = $(BINDIR)/simscript.exe
 
 .PHONY: all debug test release install clean windows
 
@@ -48,13 +47,14 @@ $(FILEDIR):
 	@ mkdir -p $(FILEDIR)
 
 clean:
-	@ rm -rf $(OBJ) $(OBJDIR) $(BINDIR); \
+	@ rm -rf $(OBJ) $(OBJDIR); \
 	if [ -e simscript ]; then \
 		rm simscript; \
 	fi
 
 windows: CC = $(WINCC)
+
 windows: $(RELEASE_TARGET_WIN)
 
-$(RELEASE_TARGET_WIN): $(OBJ) | $(FILEDIR)
+$(RELEASE_TARGET_WIN): $(OBJ) | $(BINDIR)
 	$(CC) $(CFLAGS) $(RELEASE_CFLAGS) $^ -o $@
