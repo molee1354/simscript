@@ -15,10 +15,16 @@ else
     exit
 fi
 
+printf "Should performance benchmarks be run? [y/N] : "
+read SKIP_BENCHMARK
+
 touch ${TEMP}
 for TEST in ./tests/*.ss; do
     CURRENT=$(echo "${TEST}" | grep -Po "tests/test_[0-9]+_\K[a-zA-Z]+")
     if [[ ${CURRENT} == "benchmark" ]]; then
+        if [[ ${SKIP_BENCHMARK} != "y" ]]; then
+            continue
+        fi
         rm ${TEMP}
         printf "\n\tRunning benchmark...\n"
         ${PROG} ${TEST}
