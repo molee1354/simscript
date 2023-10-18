@@ -53,5 +53,7 @@ for TEST in ./tests/*.ss; do
     ((N++))
 done
 
-rm ${TEMP}
+if [[ -e ${TEMP} ]]; then
+    rm ${TEMP}
+fi
 echo -e "\nPassed ${PASSED}/${COUNT}"

@@ -5,16 +5,20 @@ RELEASE_CFLAGS = -O3
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
+TESTDIR = tests
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEBUG_TARGET = $(BINDIR)/debug
 RELEASE_TARGET = $(BINDIR)/simscript
 
-.PHONY: all debug release install clean
+.PHONY: all debug test release install clean
 
 all: release
 
 debug: $(DEBUG_TARGET) | $(BINDIR)
+
+test: release
+	@ $(TESTDIR)/test.sh
 
 release: $(RELEASE_TARGET) | $(BINDIR)
 	@ cp $(RELEASE_TARGET) ./
