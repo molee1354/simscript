@@ -779,7 +779,6 @@ ParseRule rules[] = {
     [TOKEN_NULL]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
     [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_IMPORT]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SUPER]         = {super_,   NULL,   PREC_NONE},
     [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
@@ -1155,7 +1154,6 @@ static int getArgCount(uint8_t *code, const ValueArray constants, int ip) {
         case OP_SET_UPVALUE:
         case OP_GET_SUPER:
         case OP_METHOD:
-        case OP_IMPORT:
             return 1;
 
         case OP_JUMP:
@@ -1331,18 +1329,6 @@ static void printStatement() {
 }
 
 /**
- * @brief Method to handle import statements
- */
-static void importStatement() {
-    consume(TOKEN_STRING, "Expect filepath after import");
-    emitConstant(OBJ_VAL(
-        copyString(parser.previous.start + 1, parser.previous.length - 2)));
-    // expression();
-    consume(TOKEN_SEMICOLON, "Expect ';' after import path.");
-    emitByte(OP_IMPORT);
-}
-
-/**
  * @brief Method to handle return statements
  */
 static void returnStatement() {
@@ -1448,8 +1434,6 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
-    } else if (match(TOKEN_IMPORT)) {
-        importStatement();
     } else if (match(TOKEN_FOR)) {
         forStatement();
     } else if (match(TOKEN_IF)) {
