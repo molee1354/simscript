@@ -4,12 +4,26 @@ PROG="./simscript"
 TESTS="./tests/*.ss"
 TEMP="stderr.temp"
 COUNT=$(ls ${TESTS} | wc -l)
+((COUNT--))
 PASSED=0
 N=1
+
+if [[ -e ${PROG} ]]; then
+    echo Using ${PROG}
+else
+    echo Cannot find ${PROG}
+    exit
+fi
 
 touch ${TEMP}
 for TEST in ./tests/*.ss; do
     CURRENT=$(echo "${TEST}" | grep -Po "tests/test_[0-9]+_\K[a-zA-Z]+")
+    if [[ ${CURRENT} == "benchmark" ]]; then
+        rm ${TEMP}
+        printf "\n\tRunning benchmark...\n"
+        ${PROG} ${TEST}
+        continue
+    fi
     printf "\ttesting %-12s [%2d/%2d]\t......\t" ${CURRENT} ${N} ${COUNT}
     
     # Run the command with a timeout
@@ -23,7 +37,7 @@ for TEST in ./tests/*.ss; do
     fi
 
     RESULT=$(grep -Eo "FAIL" <<< "$OUTPUT")
-    RESULT+=$(cat ${TEMP} | grep -Eo "ERROR|Undefined")
+    RESULT+=$(cat ${TEMP} | grep -Eo "ERROR|Undefined|Error")
     if [[ -n ${RESULT} ]]; then
         if [[ ${CURRENT} == "let" || ${CURRENT} == "const" ]]; then
             printf "\033[0;32mPASS\033[0m\n"
@@ -40,4 +54,4 @@ for TEST in ./tests/*.ss; do
 done
 
 rm ${TEMP}
-echo "Passed ${PASSED}/${COUNT}"
+echo -e "\nPassed ${PASSED}/${COUNT}"
