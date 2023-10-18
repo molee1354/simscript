@@ -8,7 +8,7 @@
 #include "read.h"
 #include "vm.h"
 
-#define VERSION "v0.0.3"
+#define VERSION "v0.0.4"
 
 static void repl() {
     printf("simscript %s\n", VERSION);
