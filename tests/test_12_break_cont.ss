@@ -23,6 +23,7 @@ function while_loop() {
         if (n >= 10)  {
             break;
         }
+        echo n;
         n++;
     }
 }

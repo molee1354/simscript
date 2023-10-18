@@ -9,3 +9,5 @@ function main() {
         echo "[ FAIL ] test_9_concat.ss";
     }
 }
+
+main();
