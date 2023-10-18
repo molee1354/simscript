@@ -28,7 +28,7 @@ function test(iter) {
             + zoo.mouse();
     }
     let elapsed_time = clock() - start;
-    print "..." + iter + " : " + elapsed_time;
+    echo "..." + iter + " : " + elapsed_time;
     return elapsed_time;
 }
 
@@ -39,4 +39,4 @@ for (var i=0; i < iterations; i = 1 + i) {
     sum = sum + test(i);
 }
 average = sum/iterations;
-print "Average Time : " + average;
+echo "Average Time : " + average;
