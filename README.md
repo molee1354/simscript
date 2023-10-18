@@ -75,7 +75,7 @@ Simscript can also be used to run files straight from the terminal if the path t
 ```javascript
 #!/path/to/simscript
 
-print "Hello World!";
+echo "Hello World!";
 ```
 
 and call the file directly from the terminal.

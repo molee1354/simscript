@@ -34,7 +34,7 @@ void initTable(Table* table);
  *
  * @param table The pointer to the table to free
  */
-void freeTable(Table* table);
+void freeTable(VM* vm, Table* table);
 
 /**
  * @brief Method to get a value from a table given a key
@@ -44,7 +44,7 @@ void freeTable(Table* table);
  * @param value The pointer to the value that will hold the value
  * @return True if value exists
  */
-bool tableGet(Table* table, ObjString* key, Value* value);
+bool tableGet(VM* vm, Table* table, ObjString* key, Value* value);
 
 /**
  * @brief Method to add the given key-value pair to the hast table
@@ -54,7 +54,7 @@ bool tableGet(Table* table, ObjString* key, Value* value);
  * @param value Value called by key
  * @return True if a new entry was added
  */
-bool tableSet(Table* table, ObjString* key, Value value);
+bool tableSet(VM* vm, Table* table, ObjString* key, Value value);
 
 /**
  * @brief Method to delete a key from the table
@@ -63,7 +63,7 @@ bool tableSet(Table* table, ObjString* key, Value value);
  * @param key The key to delete
  * @return True if key existed
  */
-bool tableDelete(Table* table, ObjString* key);
+bool tableDelete(VM* vm, Table* table, ObjString* key);
 
 /**
  * @brief Method to add all the entries found in one table to another
@@ -71,7 +71,7 @@ bool tableDelete(Table* table, ObjString* key);
  * @param from Source table
  * @param to Destination Table
  */
-void tableAddAll(Table* from, Table* to);
+void tableAddAll(VM* vm, Table* from, Table* to);
 
 /**
  * @brief Method to find string values at a table.
@@ -90,13 +90,13 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
  *
  * @param table The table to free string pointers from
  */
-void tableRemoveWhite(Table* table);
+void tableRemoveWhite(VM* vm, Table* table);
 
 /**
  * @brief Method to mark a table 
  *
  * @param table The table to mark
  */
-void markTable(Table* table);
+void markTable(VM* vm, Table* table);
 
 #endif
