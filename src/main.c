@@ -8,8 +8,8 @@
 #include "read.h"
 #include "vm.h"
 
-#define VERSION "v0.0.4"
-#define TIME    "Oct 19 2023, 06:32"
+#define VERSION "0.0.4"
+#define TIME    "Oct 19 2023, 06:40"
 
 #ifdef _WIN32
 #define PLATFORM "Windows"
@@ -18,7 +18,7 @@
 #endif
 
 static void repl() {
-    printf("Simscript REPL %s @ %s [%s]\n", VERSION, TIME, PLATFORM);
+    printf("Simscript REPL v%s @ %s [%s]\n", VERSION, TIME, PLATFORM);
     puts("Enter \"exit\" to exit.");
     char line[1024];
     for (;;) {
