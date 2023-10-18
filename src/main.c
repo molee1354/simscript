@@ -10,8 +10,15 @@
 
 #define VERSION "v0.0.4"
 
+#ifdef _WIN32
+#define PLATFORM "Windows"
+#else
+#define PLATFORM "Linux"
+#endif
+
 static void repl() {
-    printf("simscript %s\n", VERSION);
+    printf("Simscript %s REPL [%s]\n", VERSION, PLATFORM);
+    puts("Enter \"exit\" to exit.");
     char line[1024];
     for (;;) {
         printf("\n>>> ");
@@ -19,6 +26,9 @@ static void repl() {
         if (!fgets(line, sizeof(line), stdin)) {
             printf("\n");
             break;
+        }
+        if (!strncmp(line, "exit", 4)) {
+            exit(0);
         }
 
         interpret(line);
@@ -42,7 +52,7 @@ int main(int argc, const char* argv[]) {
         repl();
     } else if (argc==2) {
         if (!strcmp(argv[1], "--version")) {
-            printf("simscript version %s\n\n", VERSION);
+            printf("Simscript %s\n\n", VERSION);
         } else {
             runFile(argv[1]);
         }
