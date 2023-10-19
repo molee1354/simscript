@@ -3,11 +3,13 @@ WINCC = x86_64-w64-mingw32-gcc
 CFLAGS = -Wall -Wextra
 DEBUG_CFLAGS = -g
 RELEASE_CFLAGS = -O3
+
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
 TESTDIR = tests
 INSTDIR = /usr/local/bin
+
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 TARG = simscript
@@ -53,9 +55,6 @@ $(OBJDIR):
 
 $(BINDIR):
 	@ mkdir -p $(BINDIR)
-
-$(FILEDIR):
-	@ mkdir -p $(FILEDIR)
 
 clean:
 	@ echo "Cleaning..."; \

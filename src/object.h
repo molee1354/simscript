@@ -1,6 +1,7 @@
 #ifndef simscript_object_h
 #define simscript_object_h
 
+#include "SVM.h"
 #include "common.h"
 #include "chunk.h"
 #include "table.h"
@@ -126,6 +127,17 @@ struct Obj {
 };
 
 /**
+ * @brief Enum to hold the different types of functions
+ *
+ */
+typedef enum {
+    TYPE_FUNCTION,
+    TYPE_INITIALIZER,
+    TYPE_METHOD,
+    TYPE_SCRIPT,
+} FunctionType;
+
+/**
  * @class ObjFunction
  * @brief Defining functions as first class.
  */
@@ -135,6 +147,7 @@ typedef struct {
     int upvalueCount;
     Chunk chunk;
     ObjString* name;
+    FunctionType type;
 } ObjFunction;
 
 /**
@@ -142,7 +155,7 @@ typedef struct {
  * Value
  *
  */
-typedef Value (*NativeFn)(int argCount, Value* args);
+typedef Value (*NativeFn)(VM* vm, int argCount, Value* args);
 
 /**
  * @class ObjNative
@@ -230,7 +243,7 @@ typedef struct {
  * @param method The method implementation as a closure
  * @return 
  */
-ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
+ObjBoundMethod* newBoundMethod(VM* vm, Value receiver, ObjClosure* method);
 
 /**
  * @brief Method to create an ObjClass.
@@ -238,7 +251,7 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
  * @param name The name of the class.
  * @return ObjClass* Pointer to a the new ObjClass struct.
  */
-ObjClass* newClass(ObjString* name);
+ObjClass* newClass(VM* vm, ObjString* name);
 
 /**
  * @brief Method to create an ObjClosure.
@@ -246,14 +259,14 @@ ObjClass* newClass(ObjString* name);
  * @param function The function object to hold.
  * @return ObjClosure* Pointer to an Objclosure struct.
  */
-ObjClosure* newClosure(ObjFunction* function);
+ObjClosure* newClosure(VM* vm, ObjFunction* function);
 
 /**
  * @brief Method to create an ObjFunction.
  *
  * @return ObjFunction* A pointer to a new function object.
  */
-ObjFunction* newFunction();
+ObjFunction* newFunction(VM* vm, FunctionType type);
 
 /**
  * @brief Method to create an ObjInstance
@@ -261,7 +274,7 @@ ObjFunction* newFunction();
  * @param klass The class that the instance is a part of
  * @return 
  */
-ObjInstance* newInstance(ObjClass* klass);
+ObjInstance* newInstance(VM* vm, ObjClass* klass);
 
 /**
  * @brief Method to create a new native function
@@ -269,7 +282,7 @@ ObjInstance* newInstance(ObjClass* klass);
  * @param function A pointer to a native function
  * @return ObjNative* A pointer to the native function created
  */
-ObjNative* newNative(NativeFn function);
+ObjNative* newNative(VM* vm, NativeFn function);
 
 /**
  * @brief Method to create an ObjString given a C-string. Assumes ownership
@@ -279,7 +292,7 @@ ObjNative* newNative(NativeFn function);
  * @param length The number of characters in the string
  * @return ObjString* A pointer to an ObjString
  */
-ObjString* takeString(char* chars, int length);
+ObjString* takeString(VM* vm, char* chars, int length);
 
 /**
  * @brief Method to copy the C-string into an ObjString. Assumes no ownership
@@ -289,7 +302,7 @@ ObjString* takeString(char* chars, int length);
  * @param length The number of characters in the string
  * @return ObjString* A pointer to an ObjString
  */
-ObjString* copyString(const char* chars, int length);
+ObjString* copyString(VM* vm, const char* chars, int length);
 
 /**
  * @brief Method to create a new upvalue object
@@ -297,7 +310,7 @@ ObjString* copyString(const char* chars, int length);
  * @param slot The slot where the upvalue is slotted
  * @return ObjUpvalue* A pointer to a ObjUpvalue
  */
-ObjUpvalue* newUpvalue(Value* slot);
+ObjUpvalue* newUpvalue(VM* vm, Value* slot);
 
 /**
  * @brief Method to print the values of the object
