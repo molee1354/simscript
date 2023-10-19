@@ -191,9 +191,10 @@ static void defineNative(VM* vm, const char* name, NativeFn function) {
     pop(vm);
 }
 
-VM* initVM() {
+VM* initVM(bool repl) {
     VM* vm = (VM*)malloc(sizeof(VM));
     resetStack(vm);
+    vm->repl = repl;
     vm->objects = NULL;
 
     vm->bytesAllocated = 0;
