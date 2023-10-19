@@ -17,7 +17,7 @@
 #define PLATFORM "Linux"
 #endif
 
-static void repl() {
+static void repl(VM* vm) {
     printf("Simscript REPL v%s (%s) for %s\n", VERSION, TIME, PLATFORM);
     puts("Enter \"exit\" to exit.");
     char line[1024];
