@@ -32,13 +32,13 @@ static void repl() {
             exit(0);
         }
 
-        interpret(line);
+        interpret(vm, line);
     }
 }
 
-static void runFile(const char* path) {
+static void runFile(VM* vm, const char* path) {
     char* source = readFile(path);
-    InterpretResult result = interpret(source);
+    InterpretResult result = interpret(vm, source);
     free(source);
 
     if (result==INTERPRET_COMPILE_ERROR) exit(65);
@@ -47,21 +47,21 @@ static void runFile(const char* path) {
 
 int main(int argc, const char* argv[]) {
     // init vm
-    initVM();
+    VM* vm = initVM();
 
     if (argc==1) {
-        repl();
+        repl(vm);
     } else if (argc==2) {
         if (!strcmp(argv[1], "--version")) {
             printf("Simscript %s\n\n", VERSION);
         } else {
-            runFile(argv[1]);
+            runFile(vm, argv[1]);
         }
     } else {
-        fprintf(stderr, "Usage: simscript [path]\n");
+        fprintf(stderr, "Usage: ./simscript [path]\n");
         exit(64);
     }
 
-    freeVM();
+    freeVM(vm);
     return 0;
 }
