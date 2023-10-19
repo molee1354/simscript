@@ -21,6 +21,8 @@ RELEASE_TARGET_WIN = $(BINDIR)/$(TARG).exe
 
 all: release
 
+debug: CFLAGS += $(DEBUG_CFLAGS)
+
 debug: $(DEBUG_TARGET) | $(BINDIR)
 
 test: release
@@ -58,7 +60,7 @@ $(BINDIR):
 
 clean:
 	@ echo "Cleaning..."; \
-	rm -rf $(OBJ) $(OBJDIR); \
+	rm -rf $(OBJ) $(OBJDIR) $(DEBUG_TARGET); \
 	if [ -e $(TARG) ]; then \
 		rm $(TARG); \
 	fi

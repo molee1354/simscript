@@ -229,6 +229,10 @@ static void initCompiler(Parser* parser, Compiler* compiler, Compiler* parent, F
     compiler->enclosing = parent;
 
     compiler->function = NULL;
+    if (parent != NULL) {
+        compiler->klass = parent->klass;
+    }
+
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
@@ -1032,9 +1036,7 @@ static void method(Compiler* compiler) {
         memcmp(compiler->parser->previous.start, "init", 4) == 0 ) {
         type = TYPE_INITIALIZER;
     }
-    Compiler funcCompiler;
-    beginFunction(compiler, &funcCompiler, type);
-    endCompiler(&funcCompiler);
+    function(compiler, type);
     emitBytes(compiler, OP_METHOD, constant);
 }
 
@@ -1060,7 +1062,6 @@ static void classDeclaration(Compiler* compiler) {
 //    defineVariable(compiler, nameConstant);
 
     ClassCompiler classCompiler;
-    classCompiler.hasSuperClass = false;
     setupClassCompiler(compiler, &classCompiler);
 
     // class inheritance
