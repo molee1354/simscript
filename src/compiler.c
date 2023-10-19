@@ -1059,15 +1059,16 @@ static void classDeclaration(Compiler* compiler) {
     declareVariable(compiler, false, false);
 
 //    emitBytes(compiler, OP_CLASS, nameConstant);
-//    defineVariable(compiler, nameConstant);
+    defineVariable(compiler, nameConstant);
 
     ClassCompiler classCompiler;
     setupClassCompiler(compiler, &classCompiler);
 
     // class inheritance
     if (match(compiler, TOKEN_INHERIT)) {
+//        expression(compiler);
         consume(compiler, TOKEN_IDENTIFIER, "Expect superclass name.");
-//        variable(compiler, false);
+        variable(compiler, false);
 
         if (identifiersEqual(&className, &compiler->parser->previous)) {
             error(compiler->parser, "Invalid inheritance from self.");
@@ -1077,9 +1078,9 @@ static void classDeclaration(Compiler* compiler) {
 
         // default behavior "false, false" : re-assignable, not-scoped.
         addLocal( compiler, syntheticToken("super"), false, false);
-//        defineVariable(compiler, 0);
-
-//        namedVariable(compiler, className, false);
+        defineVariable(compiler, 0);
+//
+        namedVariable(compiler, className, false);
         classCompiler.hasSuperClass = true;
         emitByte(compiler, OP_INHERIT);
     } else {
