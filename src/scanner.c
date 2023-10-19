@@ -186,7 +186,7 @@ static void skipWhiteSpace() {
  * @return Tokentype The corresponding Tokentype for the identifier token.
  * Returns TOKEN_IDENTIFIER if no matches occur.
  */
-static Tokentype checkKeyword(int start, int length, 
+static Tokentype checkKeyword(int start, int length,
         const char* rest, Tokentype type) {
     if (scanner.current - scanner.start == start + length &&
         memcmp(scanner.start + start, rest, length) == 0) {
