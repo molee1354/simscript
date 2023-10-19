@@ -47,9 +47,10 @@ static void runFile(VM* vm, const char* path) {
 
 int main(int argc, const char* argv[]) {
     // init vm
-    VM* vm = initVM();
+    VM* vm = initVM(false);
 
     if (argc==1) {
+        vm->repl = true;
         repl(vm);
     } else if (argc==2) {
         if (!strcmp(argv[1], "--version")) {

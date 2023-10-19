@@ -1386,6 +1386,10 @@ static void ifStatement(Compiler* compiler) {
  */
 static void printStatement(Compiler* compiler) {
     expression(compiler);
+    if (compiler->parser->vm->repl) {
+        emitByte(compiler, OP_PRINT);
+        return;
+    }
     consume(compiler, TOKEN_SEMICOLON, "Expect ';' after 'echo' argument.");
     emitByte(compiler, OP_PRINT);
 }

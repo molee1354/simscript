@@ -27,6 +27,7 @@ struct _vm {
     Compiler* compiler;
     CallFrame frames[FRAMES_MAX]; // each callframe has its own ip and
                                   // pointer to ObjFunction
+    bool repl;
     int frameCount; // current height of the frames stack
 
     Value stack[STACK_MAX];
