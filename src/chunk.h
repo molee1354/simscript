@@ -55,6 +55,7 @@ typedef enum {
     OP_RETURN,   // Returns from the current function
     OP_CLASS,
     OP_INHERIT,
+    OP_END_CLASS,
     OP_METHOD
 } OpCode;
 

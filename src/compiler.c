@@ -509,32 +509,32 @@ static void dot(Compiler* compiler, bool canAssign) {
         expression(compiler);
         emitBytes(compiler, OP_SET_PROPERTY, name);
 
-    } else if (match(compiler, TOKEN_PLUS_EQUALS)) {
+    } else if (canAssign && match(compiler, TOKEN_PLUS_EQUALS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         expression(compiler);
         emitByte(compiler, OP_ADD);
         emitBytes(compiler, OP_SET_PROPERTY, name);
-    } else if (match(compiler, TOKEN_MINUS_EQUALS)) {
+    } else if (canAssign && match(compiler, TOKEN_MINUS_EQUALS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         expression(compiler);
         emitByte(compiler, OP_SUBTRACT);
         emitBytes(compiler, OP_SET_PROPERTY, name);
-    } else if (match(compiler, TOKEN_STAR_EQUALS)) {
+    } else if (canAssign && match(compiler, TOKEN_STAR_EQUALS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         expression(compiler);
         emitByte(compiler, OP_MULTIPLY);
         emitBytes(compiler, OP_SET_PROPERTY, name);
-    } else if (match(compiler, TOKEN_SLASH_EQUALS)) {
+    } else if (canAssign && match(compiler, TOKEN_SLASH_EQUALS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         expression(compiler);
         emitByte(compiler, OP_DIVIDE);
         emitBytes(compiler, OP_SET_PROPERTY, name);
 
-    } else if (match(compiler, TOKEN_PLUS_PLUS)) {
+    } else if (canAssign && match(compiler, TOKEN_PLUS_PLUS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         emitByte(compiler, OP_INCREMENT);
         emitBytes(compiler, OP_SET_PROPERTY, name);
-    } else if (match(compiler, TOKEN_MINUS_MINUS)) {
+    } else if (canAssign && match(compiler, TOKEN_MINUS_MINUS)) {
         emitBytes(compiler, OP_GET_PROPERTY, name);
         expression(compiler);
         emitByte(compiler, OP_DECREMENT);
@@ -1059,15 +1059,16 @@ static void classDeclaration(Compiler* compiler) {
     declareVariable(compiler, false, false);
 
 //    emitBytes(compiler, OP_CLASS, nameConstant);
-    defineVariable(compiler, nameConstant);
+//    defineVariable(compiler, nameConstant);
 
     ClassCompiler classCompiler;
     setupClassCompiler(compiler, &classCompiler);
 
     // class inheritance
     if (match(compiler, TOKEN_INHERIT)) {
-//        expression(compiler);
         consume(compiler, TOKEN_IDENTIFIER, "Expect superclass name.");
+//        expression(compiler);
+        classCompiler.hasSuperClass = true;
         variable(compiler, false);
 
         if (identifiersEqual(&className, &compiler->parser->previous)) {
@@ -1079,25 +1080,25 @@ static void classDeclaration(Compiler* compiler) {
         // default behavior "false, false" : re-assignable, not-scoped.
         addLocal( compiler, syntheticToken("super"), false, false);
         defineVariable(compiler, 0);
-//
+
         namedVariable(compiler, className, false);
-        classCompiler.hasSuperClass = true;
         emitByte(compiler, OP_INHERIT);
     } else {
         emitByte(compiler, OP_CLASS);
     }
     emitByte(compiler, nameConstant);
     // class definition
-//    namedVariable(compiler, className, false);
+    namedVariable(compiler, className, false);
     consume(compiler, TOKEN_LEFT_BRACE, "Expect '{' before class body.");
     while (!check(compiler, TOKEN_RIGHT_BRACE) && !check(compiler, TOKEN_EOF)) {
         method(compiler);
     }
     consume(compiler, TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
-//    emitByte(compiler, OP_POP);
+    emitByte(compiler, OP_POP);
 
     if (classCompiler.hasSuperClass) {
         endScope(compiler);
+        emitByte(compiler, OP_END_CLASS);
     }
 
     // set current class to it's enclosing class after it's done declaring.
@@ -1207,6 +1208,7 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_NEGATE:
         case OP_CLOSE_UPVALUE:
         case OP_RETURN:
+        case OP_END_CLASS:
         case OP_BREAK:
             return 0;
 
@@ -1216,6 +1218,8 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_GET_GLOBAL:
         case OP_GET_UPVALUE:
         case OP_SET_UPVALUE:
+        case OP_GET_PROPERTY:
+        case OP_SET_PROPERTY:
         case OP_GET_SUPER:
         case OP_METHOD:
             return 1;
@@ -1224,6 +1228,7 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_JUMP_IF_FALSE:
         case OP_LOOP:
         case OP_CLASS:
+        case OP_INHERIT:
         case OP_CALL:
             return 2;
 
