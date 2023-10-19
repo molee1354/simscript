@@ -56,7 +56,7 @@ for TEST in ${TESTS}; do
 
     # Parsing outputs for errors
     RESULT=$(grep -E "FAIL" <<< "$OUTPUT") # stdout
-    RESULT+=$(cat ${TEMP} | grep -E "ERROR|Undefined|Error|Expect") # stderr
+    RESULT+=$(cat ${TEMP} | grep -E "ERROR|Undefined|Error|Expect|dumped") # stderr
 
     if [[ -n ${RESULT} ]]; then
         # If RESULT exists, then it means there was an error
