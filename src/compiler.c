@@ -1054,40 +1054,34 @@ static void endClassCompiler(Compiler* compiler, ClassCompiler* classCompiler __
  */
 static void classDeclaration(Compiler* compiler) {
     consume(compiler, TOKEN_IDENTIFIER, "Expect class name.");
+
     Token className = compiler->parser->previous;
     uint8_t nameConstant = identifierConstant(compiler, &compiler->parser->previous);
     declareVariable(compiler, false, false);
 
-//    emitBytes(compiler, OP_CLASS, nameConstant);
-//    defineVariable(compiler, nameConstant);
+    emitBytes(compiler, OP_CLASS, nameConstant);
+    defineVariable(compiler, nameConstant);
 
     ClassCompiler classCompiler;
     setupClassCompiler(compiler, &classCompiler);
 
-    // class inheritance
     if (match(compiler, TOKEN_INHERIT)) {
         consume(compiler, TOKEN_IDENTIFIER, "Expect superclass name.");
-//        expression(compiler);
-        classCompiler.hasSuperClass = true;
         variable(compiler, false);
 
         if (identifiersEqual(&className, &compiler->parser->previous)) {
-            error(compiler->parser, "Invalid inheritance from self.");
+            error(compiler->parser, "A class can't inherit from itself.");
         }
-        // add a superclass local variable
-        beginScope(compiler); // each class has a local scope store "super"
 
-        // default behavior "false, false" : re-assignable, not-scoped.
-        addLocal( compiler, syntheticToken("super"), false, false);
+        beginScope(compiler);
+        addLocal(compiler, syntheticToken("super"), false, false);
         defineVariable(compiler, 0);
 
         namedVariable(compiler, className, false);
         emitByte(compiler, OP_INHERIT);
-    } else {
-        emitByte(compiler, OP_CLASS);
+        classCompiler.hasSuperClass = true;
     }
-    emitByte(compiler, nameConstant);
-    // class definition
+
     namedVariable(compiler, className, false);
     consume(compiler, TOKEN_LEFT_BRACE, "Expect '{' before class body.");
     while (!check(compiler, TOKEN_RIGHT_BRACE) && !check(compiler, TOKEN_EOF)) {
@@ -1095,16 +1089,10 @@ static void classDeclaration(Compiler* compiler) {
     }
     consume(compiler, TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
     emitByte(compiler, OP_POP);
-
     if (classCompiler.hasSuperClass) {
         endScope(compiler);
-        emitByte(compiler, OP_END_CLASS);
     }
-
-    // set current class to it's enclosing class after it's done declaring.
-    // NULL if at global scope.
     endClassCompiler(compiler, &classCompiler);
-    defineVariable(compiler, nameConstant);
 }
 
 /**
