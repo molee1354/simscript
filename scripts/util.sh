@@ -1,10 +1,10 @@
 CFILE="src/main.c"
 README="README.md"
 VER_GREPSTR="[0-9]+\.[0-9]+\.[[:alnum:]]*"
-CUR_VERSION=$(cat ${CFILE} | grep -oP "#define.*?VERSION.*?\"\K${VER_GREPSTR}")
 
 function set-version() {
     NEW_VERSION=$1
+    CUR_VERSION=$(cat ${CFILE} | grep -oP "#define.*?VERSION.*?\"\K${VER_GREPSTR}")
 
     MAJ=$(echo ${NEW_VERSION} | grep -oP "^[0-9]+")
     MIN=$(echo ${NEW_VERSION} | grep -oP "^[0-9]+\.\K[0-9]+")
@@ -42,6 +42,7 @@ function refresh() {
 }
 
 function push() {
+    CUR_VERSION=$(cat ${CFILE} | grep -oP "#define.*?VERSION.*?\"\K${VER_GREPSTR}")
     refresh
 
     git status
@@ -67,7 +68,7 @@ function push() {
 
 function commit() {
     CFILE="src/main.c"
-
+    CUR_VERSION=$(cat ${CFILE} | grep -oP "#define.*?VERSION.*?\"\K${VER_GREPSTR}")
     STATUS=$(git status | grep -o "nothing to commit")
     if [[ -n ${STATUS} ]]; then
         echo "Nothing to commit..."
