@@ -67,7 +67,6 @@ function push() {
 
 function commit() {
     CFILE="src/main.c"
-    CUR_VERSION=$(cat ${CFILE} | grep -oP "#define.*?VERSION.*?\"\K${VER_GREPSTR}")
 
     STATUS=$(git status | grep -o "nothing to commit")
     if [[ -n ${STATUS} ]]; then
