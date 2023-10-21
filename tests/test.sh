@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PROG="./simscript"
 VERSIONFILE="src/main.c"
