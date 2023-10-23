@@ -2,6 +2,8 @@
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
+Quote of the version: *"So it goes"* -Kurt Vonnegut.
+
 ## Table of Contents
 
 - [simscript `v0.0.5`](#simscript-v005)
@@ -12,8 +14,7 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-  - [Current Release `v0.0.5`](#current-release-v005)
-    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-v005-and-compiler)
+    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-vm-and-compiler)
     - [Increment / Decrement Operations on Object Properties](#increment--decrement-operations-on-object-properties)
     - [New Tests](#new-tests)
   - [Documentation](#documentation)
@@ -94,8 +95,6 @@ path/to/script.ss
 ## Current Release
 
 Here are some new features in version (`v0.0.5`). A full log of releases can be found [here](./docs/release.md).
-
-## Current Release `v0.0.5`
 
 This new version of Simscript is one of the biggest changes for the source code, but its manifestations in language syntax is minimal if at all. New features in version `v0.0.5` comprise of changes in the the Simscript virtual machine and the compiler, along with some important bug fixes.
 
