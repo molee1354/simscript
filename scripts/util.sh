@@ -16,7 +16,7 @@ function set-version() {
     echo ""
     if [[ ${CONFIRM} != "n" ]]; then
         perl -pi -e "s/#define.*?VERSION.*?\"\K${VER_GREPSTR}/${NEW_VERSION}/g" ${CFILE}
-        perl -pi -e "BEGIN { \$count = 0 } if (\$count < 2 && s/v\K${VER_GREPSTR}/${NEW_VERSION}/) { \$count++ }" ${README}
+        perl -pi -e "BEGIN { \$count = 0 } if (\$count < 3 && s/v\K${VER_GREPSTR}/${NEW_VERSION}/) { \$count++ }" ${README}
         perl -pi -e "s/simscript-v\K[[:alnum:]]*/${CAT_VERSION}/g" ${README}
     else
         return
