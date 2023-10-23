@@ -7,7 +7,7 @@ RELEASE_CFLAGS = -O3
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
-TESTDIR = tests
+TESTDIR = scripts
 INSTDIR = /usr/local/bin
 
 SRC = $(wildcard $(SRCDIR)/*.c)
