@@ -1,7 +1,7 @@
 CC = gcc
 WINCC = x86_64-w64-mingw32-gcc
 CFLAGS = -Wall -Wextra
-DEBUG_CFLAGS = -g
+DEBUG_CFLAGS = -g -fsanitize=address
 RELEASE_CFLAGS = -O3
 
 SRCDIR = src
