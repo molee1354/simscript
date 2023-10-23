@@ -1,13 +1,15 @@
 CC = gcc
 WINCC = x86_64-w64-mingw32-gcc
 CFLAGS = -Wall -Wextra
-DEBUG_CFLAGS = -g
+DEBUG_CFLAGS = -g -fsanitize=address
 RELEASE_CFLAGS = -O3
+
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
-TESTDIR = tests
+TESTDIR = scripts
 INSTDIR = /usr/local/bin
+
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 TARG = simscript
@@ -18,6 +20,8 @@ RELEASE_TARGET_WIN = $(BINDIR)/$(TARG).exe
 .PHONY: all debug test release install uninstall clean windows
 
 all: release
+
+debug: CFLAGS += $(DEBUG_CFLAGS)
 
 debug: $(DEBUG_TARGET) | $(BINDIR)
 
@@ -54,12 +58,9 @@ $(OBJDIR):
 $(BINDIR):
 	@ mkdir -p $(BINDIR)
 
-$(FILEDIR):
-	@ mkdir -p $(FILEDIR)
-
 clean:
 	@ echo "Cleaning..."; \
-	rm -rf $(OBJ) $(OBJDIR); \
+	rm -rf $(OBJ) $(OBJDIR) $(DEBUG_TARGET); \
 	if [ -e $(TARG) ]; then \
 		rm $(TARG); \
 	fi

@@ -3,7 +3,9 @@ obj/
 .idea/
 .vscode/
 
-# ignoring top-level binaries
+# ignoring binaries
+bin/debug
 simscript
 !bin/simscript
 .util
+*.out

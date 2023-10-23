@@ -186,7 +186,7 @@ static void skipWhiteSpace() {
  * @return Tokentype The corresponding Tokentype for the identifier token.
  * Returns TOKEN_IDENTIFIER if no matches occur.
  */
-static Tokentype checkKeyword(int start, int length, 
+static Tokentype checkKeyword(int start, int length,
         const char* rest, Tokentype type) {
     if (scanner.current - scanner.start == start + length &&
         memcmp(scanner.start + start, rest, length) == 0) {
@@ -336,19 +336,19 @@ Token scanToken() {
         case ',': return makeToken(TOKEN_COMMA);
 
         case '-': {
-            if (match('=')) {
-                return makeToken(TOKEN_MINUS_EQUALS);
-            } else if (match('-')) {
+            if (match('-')) {
                 return makeToken(TOKEN_MINUS_MINUS);
+            } else if (match('=')) {
+                return makeToken(TOKEN_MINUS_EQUALS);
             } else {
                 return makeToken(TOKEN_MINUS);
             }
         }
         case '+': {
-            if (match('=')) {
-                return makeToken(TOKEN_PLUS_EQUALS);
-            } else if (match('+')) {
+            if (match('+')) {
                 return makeToken(TOKEN_PLUS_PLUS);
+            } else if (match('=')) {
+                return makeToken(TOKEN_PLUS_EQUALS);
             } else {
                 return makeToken(TOKEN_PLUS);
             }

@@ -11,12 +11,12 @@ void initValueArray(ValueArray *array) {
     array->count = 0;
 }
 
-void writeValueArray(ValueArray *array, Value value) {
+void writeValueArray(VM* vm, ValueArray *array, Value value) {
     // checking to see if array has enough capacity
     if (array->capacity < array->count+1) {
         int oldCapacity = array->capacity;
         array->capacity = GROW_CAPACITY(oldCapacity);
-        array->values = GROW_ARRAY(Value,
+        array->values = GROW_ARRAY(vm, Value,
                 array->values,
                 oldCapacity,
                 array->capacity);
@@ -25,8 +25,8 @@ void writeValueArray(ValueArray *array, Value value) {
     array->count++;
 }
 
-void freeValueArray(ValueArray* array) {
-    FREE_ARRAY(uint8_t, array->values, array->capacity);
+void freeValueArray(VM* vm, ValueArray* array) {
+    FREE_ARRAY(vm, uint8_t, array->values, array->capacity);
     initValueArray(array); // zero out the fields so it's in an empty state
 }
 

@@ -1,10 +1,10 @@
-# simscript `v0.0.4`
+# simscript `v0.0.5`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.4`](#simscript-v004)
+- [simscript `v0.0.5`](#simscript-v005)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -12,8 +12,10 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Windows Binary](#windows-binary)
-    - [Version Check](#version-check)
+  - [Current Release `v0.0.5`](#current-release-v005)
+    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-v005-and-compiler)
+    - [Increment / Decrement Operations on Object Properties](#increment--decrement-operations-on-object-properties)
+    - [New Tests](#new-tests)
   - [Documentation](#documentation)
 
 ## Download
@@ -91,25 +93,23 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.4`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.5`). A full log of releases can be found [here](./docs/release.md).
 
-**A new Windows executable has been compiled for Simscript in version `v0.0.4`**, along with some minor changes.
+## Current Release `v0.0.5`
 
-### Windows Binary
+This new version of Simscript is one of the biggest changes for the source code, but its manifestations in language syntax is minimal if at all. New features in version `v0.0.5` comprise of changes in the the Simscript virtual machine and the compiler, along with some important bug fixes.
 
-Starting from version `v0.0.4` a new Windows executable will be uploaded  in the `files` directory as `simscript.exe`. The Windows version always will be up-to-date on the `master` branch, and mostly on the `dev` branch as well.
+### Non-global Variables for Simscript VM and Compiler
 
-### Version Check
+Prior to `v0.0.5`, each Simhub virtual machine and compiler had only one single representation at runtime, meaning that once the `simscript` binary was run, the VM and the compiler instance created was the only state that the code could ever be in. While this keeps the code simple, any performance improvements, particularly those involving the use of multiple threads, is very difficult or even impossible to implement. By changing the VM and compiler representations from global variables to passable parameters, new possibilities of performance optimizations now exist. Thorough testing was done to ensure that the current state of Simscript is backwards-compatible.
 
-Running the `simscript` command with the `--version` flag will now show the version number.
+### Increment / Decrement Operations on Object Properties
 
-```shell
-simscript --version
+Using increment/decrement operators (`++`, `--`), and operation-assignment operators (`+=`, `-=`, `*=`, `/=`) was unreliable with object properties, and in the case of the decrement operator `--`, even with normal variables. Changes in version `v0.0.5` fixed them.
 
+### New Tests
 
-# output
-simscript version vX.X.X
-```
+Version `v0.0.5` come with some new tests and utility scripts to help with the development workflow.
 
 ## Documentation
 

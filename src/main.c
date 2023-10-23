@@ -8,8 +8,8 @@
 #include "read.h"
 #include "vm.h"
 
-#define VERSION "0.0.4"
-#define TIME    "Oct 19 2023, 06:40"
+#define VERSION "0.0.5"
+#define TIME    "Oct 24 2023, 01:12"
 
 #ifdef _WIN32
 #define PLATFORM "Windows"
@@ -17,8 +17,8 @@
 #define PLATFORM "Linux"
 #endif
 
-static void repl() {
-    printf("Simscript REPL v%s @ %s [%s]\n", VERSION, TIME, PLATFORM);
+static void repl(VM* vm) {
+    printf("Simscript REPL v%s (%s) for %s\n", VERSION, TIME, PLATFORM);
     puts("Enter \"exit\" to exit.");
     char line[1024];
     for (;;) {
@@ -32,13 +32,13 @@ static void repl() {
             exit(0);
         }
 
-        interpret(line);
+        interpret(vm, line);
     }
 }
 
-static void runFile(const char* path) {
+static void runFile(VM* vm, const char* path) {
     char* source = readFile(path);
-    InterpretResult result = interpret(source);
+    InterpretResult result = interpret(vm, source);
     free(source);
 
     if (result==INTERPRET_COMPILE_ERROR) exit(65);
@@ -47,21 +47,22 @@ static void runFile(const char* path) {
 
 int main(int argc, const char* argv[]) {
     // init vm
-    initVM();
+    VM* vm = initVM(false);
 
     if (argc==1) {
-        repl();
+        vm->repl = true;
+        repl(vm);
     } else if (argc==2) {
         if (!strcmp(argv[1], "--version")) {
             printf("Simscript %s\n\n", VERSION);
         } else {
-            runFile(argv[1]);
+            runFile(vm, argv[1]);
         }
     } else {
-        fprintf(stderr, "Usage: simscript [path]\n");
+        fprintf(stderr, "Usage: ./simscript [path]\n");
         exit(64);
     }
 
-    freeVM();
+    freeVM(vm);
     return 0;
 }
