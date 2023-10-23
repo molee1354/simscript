@@ -1,10 +1,10 @@
-# simscript `v0.5.0`
+# simscript `v0.0.5`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.5.0`](#simscript-v050)
+- [simscript `v0.0.5`](#simscript-v005)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -13,7 +13,7 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Usage](#usage)
   - [Current Release](#current-release)
   - [Current Release `v0.0.5`](#current-release-v005)
-    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-vm-and-compiler)
+    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-v005-and-compiler)
     - [Increment / Decrement Operations on Object Properties](#increment--decrement-operations-on-object-properties)
     - [New Tests](#new-tests)
   - [Documentation](#documentation)
