@@ -14,6 +14,8 @@
 #include "debug.h"
 #endif
 
+#define REPL (parser->vm->repl)
+
 
 // Parser parser;
 
@@ -41,7 +43,11 @@ static Chunk* currentChunk(Compiler* compiler) {
 static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
-    fprintf(stderr, "COMPILER ERROR:\n[line %d] Error", token->line);
+    if (REPL) {
+        fprintf(stderr, "COMPILER ERROR:\n[REPL] Error");
+    } else {
+        fprintf(stderr, "COMPILER ERROR:\n[line %d] Error", token->line);
+    }
 
     if (token->type==TOKEN_EOF) {
         fprintf(stderr, " at end");
@@ -510,33 +516,32 @@ static void dot(Compiler* compiler, bool canAssign) {
         emitBytes(compiler, OP_SET_PROPERTY, name);
 
     } else if (canAssign && match(compiler, TOKEN_PLUS_EQUALS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         expression(compiler);
         emitByte(compiler, OP_ADD);
         emitBytes(compiler, OP_SET_PROPERTY, name);
     } else if (canAssign && match(compiler, TOKEN_MINUS_EQUALS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         expression(compiler);
         emitByte(compiler, OP_SUBTRACT);
         emitBytes(compiler, OP_SET_PROPERTY, name);
     } else if (canAssign && match(compiler, TOKEN_STAR_EQUALS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         expression(compiler);
         emitByte(compiler, OP_MULTIPLY);
         emitBytes(compiler, OP_SET_PROPERTY, name);
     } else if (canAssign && match(compiler, TOKEN_SLASH_EQUALS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         expression(compiler);
         emitByte(compiler, OP_DIVIDE);
         emitBytes(compiler, OP_SET_PROPERTY, name);
 
     } else if (canAssign && match(compiler, TOKEN_PLUS_PLUS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         emitByte(compiler, OP_INCREMENT);
         emitBytes(compiler, OP_SET_PROPERTY, name);
     } else if (canAssign && match(compiler, TOKEN_MINUS_MINUS)) {
-        emitBytes(compiler, OP_GET_PROPERTY, name);
-        expression(compiler);
+        emitBytes(compiler, OP_GET_PROPERTY_NOPOP, name);
         emitByte(compiler, OP_DECREMENT);
         emitBytes(compiler, OP_SET_PROPERTY, name);
 
@@ -786,6 +791,28 @@ static void unary(Compiler* compiler, bool canAssign __attribute__((unused))) {
 }
 
 /**
+ * @brief Method to emit the increment operation
+ *
+ * @param compiler 
+ * @param canAssign 
+ */
+static void increment(Compiler* compiler __attribute__((unused)),
+                          bool canAssign __attribute__((unused))) {
+    emitByte(compiler, OP_INCREMENT);
+}
+
+/**
+ * @brief Method to emit the decrement operation
+ *
+ * @param compiler 
+ * @param canAssign 
+ */
+static void decrement(Compiler* compiler __attribute__((unused)),
+                          bool canAssign __attribute__((unused))) {
+    emitByte(compiler, OP_DECREMENT);
+}
+
+/**
  * @brief The array of parse rules
  *
  */
@@ -811,9 +838,9 @@ ParseRule rules[] = {
     [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
 
-    [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_PLUS_PLUS]     = {NULL,     increment,   PREC_NONE},
     [TOKEN_PLUS_EQUALS]   = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS_MINUS]   = {NULL,     decrement,   PREC_NONE},
     [TOKEN_MINUS_EQUALS]  = {NULL,     NULL,   PREC_NONE},
     [TOKEN_STAR_EQUALS]   = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SLASH_EQUALS]  = {NULL,     NULL,   PREC_NONE},
@@ -1198,6 +1225,8 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_RETURN:
         case OP_END_CLASS:
         case OP_BREAK:
+        case OP_INCREMENT:
+        case OP_DECREMENT:
             return 0;
 
         case OP_CONSTANT:

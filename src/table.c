@@ -53,7 +53,7 @@ static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
     }
 }
 
-bool tableGet(VM* vm __attribute__((unused)), Table* table, ObjString* key, Value* value) {
+bool tableGet(Table* table, ObjString* key, Value* value) {
     if (table->count == 0) return false;
 
     Entry* entry = findEntry(table->entries, table->capacity, key);

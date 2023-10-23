@@ -288,7 +288,7 @@ static bool callValue(VM* vm, Value callee, int argCount) {
                 ObjClass* klass = AS_CLASS(callee);
                 vm->stackTop[-argCount-1] = OBJ_VAL(newInstance(vm, klass));
                 Value initializer;
-                if (tableGet(vm, &klass->methods, vm->initString, &initializer)) {
+                if (tableGet(&klass->methods, vm->initString, &initializer)) {
                     return call(vm, AS_CLOSURE(initializer), argCount);
                 } else if (argCount != 0) {
                     runtimeError(vm, "Expected 0 arguments but got %d.", argCount);
@@ -322,7 +322,7 @@ static bool callValue(VM* vm, Value callee, int argCount) {
  */
 static bool invokeFromClass(VM* vm, ObjClass* klass, ObjString* name, int argCount) {
     Value method;
-    if (!tableGet(vm, &klass->methods, name, &method)) {
+    if (!tableGet(&klass->methods, name, &method)) {
         runtimeError(vm, "Undefined method '%s' in class '%s'.",
                 name->chars, klass->name->chars);
         return false;
@@ -349,7 +349,7 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
     // before we look up a method in a class, we look for a field with the
     // same name.
     Value value;
-    if (tableGet(vm, &instance->fields, name, &value)) {
+    if (tableGet(&instance->fields, name, &value)) {
         vm->stackTop[-argCount -1] = value;
         return callValue(vm, value, argCount);
     }
@@ -365,7 +365,7 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
  */
 static bool bindMethod(VM* vm, ObjClass* klass, ObjString* name) {
     Value method;
-    if (!tableGet(vm, &klass->methods, name, &method)) {
+    if (!tableGet(&klass->methods, name, &method)) {
         runtimeError(vm, "Undefined property '%s'.", name->chars);
         return false;
     }
@@ -576,7 +576,7 @@ static InterpretResult run(VM* vm) {
             case OP_GET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 Value value;
-                if (!tableGet(vm, &vm->globals, name, &value)) {
+                if (!tableGet(&vm->globals, name, &value)) {
                     runtimeError(vm, "Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -619,7 +619,7 @@ static InterpretResult run(VM* vm) {
 
                 Value value;
                 // if the instance has the field with the name
-                if (tableGet(vm, &instance->fields, name, &value)) {
+                if (tableGet(&instance->fields, name, &value)) {
                     pop(vm);
                     push(vm, value);
                     break;
@@ -641,9 +641,31 @@ static InterpretResult run(VM* vm) {
                 }
                 ObjInstance* instance = AS_INSTANCE(peek(vm,1));
                 tableSet(vm, &instance->fields, READ_STRING(), peek(vm,0));
-                Value value = pop(vm);
+                /* Value value = pop(vm);
                 pop(vm);
-                push(vm, value);
+                push(vm, value); */
+                pop(vm);
+                pop(vm);
+                push(vm, NULL_VAL);
+                break;
+            }
+            case OP_GET_PROPERTY_NOPOP: {
+                
+                if (!IS_INSTANCE(peek(vm,1))) {
+                    runtimeError(vm, "Only instances have fields.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjInstance* instance = AS_INSTANCE(peek(vm,1));
+                ObjString* name = READ_STRING();
+                Value value;
+                if (tableGet(&instance->fields, name, &value)) {
+                    push(vm, value);
+                    break;
+                }
+                if (bindMethod(vm, instance->klass, name)) {
+                    break;
+                }
+
                 break;
             }
             case OP_GET_SUPER: {

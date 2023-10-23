@@ -336,19 +336,19 @@ Token scanToken() {
         case ',': return makeToken(TOKEN_COMMA);
 
         case '-': {
-            if (match('=')) {
-                return makeToken(TOKEN_MINUS_EQUALS);
-            } else if (match('-')) {
+            if (match('-')) {
                 return makeToken(TOKEN_MINUS_MINUS);
+            } else if (match('=')) {
+                return makeToken(TOKEN_MINUS_EQUALS);
             } else {
                 return makeToken(TOKEN_MINUS);
             }
         }
         case '+': {
-            if (match('=')) {
-                return makeToken(TOKEN_PLUS_EQUALS);
-            } else if (match('+')) {
+            if (match('+')) {
                 return makeToken(TOKEN_PLUS_PLUS);
+            } else if (match('=')) {
+                return makeToken(TOKEN_PLUS_EQUALS);
             } else {
                 return makeToken(TOKEN_PLUS);
             }
