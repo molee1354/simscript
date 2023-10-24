@@ -13,8 +13,9 @@ typedef struct {
     Token current;
     Token previous;
 
-    bool hadError;  // if the parser encountered an error during parsing
-    bool panicMode; // set panicMode to unwind out of the parser code
+    bool hadError;     // if the parser encountered an error during parsing
+    bool panicMode;    // set panicMode to unwind out of the parser code
+    ObjModule* module; // Module object
 } Parser;
 
 typedef enum {
@@ -127,7 +128,7 @@ typedef struct {
  * @param chunk Chunk to write to
  * @return True if the parser encountered an error
  */
-ObjFunction* compile(VM* vm, const char* source);
+ObjFunction* compile(VM* vm, ObjModule* module, const char* source);
 
 /**
  * @brief Method to mark the compiler root

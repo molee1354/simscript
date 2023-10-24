@@ -29,9 +29,6 @@
  */
 // VM vm;
 
-// Runtime error function declaration
-static void runtimeError(VM* vm, const char* format, ...);
-
 /**
  * @brief Defining the native "clock()" function.
  *
@@ -150,7 +147,7 @@ static void resetStack(VM* vm) {
  * @param format The print format for error messaging
  *
  */
-static void runtimeError(VM* vm, const char* format, ...) {
+void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
     fprintf(stderr, "RUNTIME ERROR\n");
@@ -511,9 +508,10 @@ static void concatenate(VM* vm) {
 
 static InterpretResult run(VM* vm) {
     CallFrame* frame = &vm->frames[vm->frameCount-1];
+    // register uint8_t* ip = frame->ip;
 
 // ip set to the instruction about to be executed
-#define READ_BYTE()     ( *frame->ip++ ) 
+#define READ_BYTE()     ( *frame->ip++ )
 
 #define READ_SHORT() \
     ( frame->ip += 2, \
@@ -735,7 +733,60 @@ static InterpretResult run(VM* vm) {
                 push(vm,  NUMBER_VAL( AS_NUMBER(pop(vm))-1 ) );
                 break;
             }
+            case OP_IMPORT: {
+                ObjString* fileName = READ_STRING();
+                Value moduleVal;
 
+                char path[PATHLEN];
+                if (!validPath(frame->closure->function->module->path->chars,
+                            fileName->chars, path)) {
+                    runtimeError(vm, "Could not open file '%s'.", fileName->chars);
+                }
+
+                ObjString* pathObj = copyString(vm, path, strlen(path));
+                push(vm, OBJ_VAL(pathObj));
+
+                // skipping if file already imported
+                if (tableGet(&vm->modules, pathObj, &moduleVal)) {
+                    pop(vm);
+                    vm->lastModule = AS_MODULE(moduleVal);
+                    push(vm, NULL_VAL);
+                    break;
+                }
+
+                char* source = readFile_VM(vm, path);
+
+                if (source == NULL) {
+                    runtimeError(vm, "Could not open file '%s'.", fileName->chars);
+                }
+
+                ObjModule* module = newModule(vm, pathObj);
+                module->path = dirName(vm, path, strlen(path));
+                vm->lastModule = module;
+
+                pop(vm);
+                push(vm, OBJ_VAL(module));
+                ObjFunction* function = compile(vm, module, source);
+                pop(vm);
+                
+                FREE_ARRAY(vm, char, source, strlen(source)+1);
+
+                if (function == NULL) return INTERPRET_COMPILE_ERROR;
+                push(vm, OBJ_VAL(function));
+                ObjClosure* closure = newClosure(vm, function);
+                pop(vm);
+                push(vm, OBJ_VAL(closure));
+
+//                frame->ip = ip;
+                call(vm, closure, 0);
+                frame = &vm->frames[vm->frameCount - 1];
+//                ip = frame->ip;
+                break;
+            }
+            case OP_IMPORT_END: {
+                vm->lastModule = frame->closure->function->module;
+                break;
+            }
             case OP_NOT:
                 push(vm, BOOL_VAL(isFalsey(pop(vm))));
                 break;
@@ -857,8 +908,17 @@ static InterpretResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-InterpretResult interpret(VM* vm, const char* source) {
-    ObjFunction* function = compile(vm, source);
+InterpretResult interpret(VM* vm, char* moduleName, const char* source) {
+    ObjString* name = copyString(vm, moduleName, strlen(moduleName));
+    push(vm, OBJ_VAL(name));
+    ObjModule* module = newModule(vm, name);
+    pop(vm);
+
+    push(vm, OBJ_VAL(module));
+    module->path = getDirectory(vm, moduleName);
+    pop(vm);
+
+    ObjFunction* function = compile(vm, module, source);
     if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
     push(vm, OBJ_VAL(function));
@@ -867,5 +927,6 @@ InterpretResult interpret(VM* vm, const char* source) {
     push(vm, OBJ_VAL(closure));
     call(vm, closure, 0);
 
-    return run(vm);
+    InterpretResult result = run(vm);
+    return result;
 }

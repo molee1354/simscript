@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "object.h"
 #include "scanner.h"
+#include "table.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -44,9 +45,9 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
     if (REPL) {
-        fprintf(stderr, "COMPILER ERROR:\n[REPL] Error");
+        fprintf(stderr, "COMPILER ERROR:\n\t[REPL] Error");
     } else {
-        fprintf(stderr, "COMPILER ERROR:\n[line %d] Error", token->line);
+        fprintf(stderr, "COMPILER ERROR:\n  At '%s'\n  [line %d] Error", parser->module->name->chars,token->line);
     }
 
     if (token->type==TOKEN_EOF) {
@@ -242,7 +243,7 @@ static void initCompiler(Parser* parser, Compiler* compiler, Compiler* parent, F
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
-    compiler->function = newFunction(parser->vm, type);
+    compiler->function = newFunction(parser->vm, parser->module, type);
 
     // storing the function's name (if not top-level/script)
     if (type != TYPE_SCRIPT) {
@@ -1566,11 +1567,12 @@ static void statement(Compiler* compiler) {
     }
 }
 
-ObjFunction* compile(VM* vm, const char *source) {
+ObjFunction* compile(VM* vm, ObjModule* module, const char *source) {
     Parser parser;
     parser.vm = vm;
     parser.hadError = false;
     parser.panicMode = false;
+    parser.module = module;
     initScanner(source);
 
     Compiler compiler;

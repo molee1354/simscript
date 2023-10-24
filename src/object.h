@@ -14,6 +14,12 @@
 #define OBJ_TYPE(value) ( AS_OBJ(value)->type )
 
 /**
+ * @brief Macro to check if a value is of module type
+ *
+ */
+#define IS_MODULE(value) isObjType(value, OBJ_MODULE)
+
+/**
  * @brief Macro to check if a value is of bound-method type
  *
  */
@@ -54,6 +60,12 @@
  *
  */ 
 #define IS_STRING(value)   isObjType(value, OBJ_STRING)
+
+/**
+ * @brief Macro to convert into a module object
+ *
+ */ 
+#define AS_MODULE(value)   ( (ObjModule*)AS_OBJ(value) )
 
 /**
  * @brief Macro to convert into a bound-method object
@@ -105,6 +117,7 @@
  *
  */
 typedef enum {
+    OBJ_MODULE,
     OBJ_BOUND_METHOD,
     OBJ_CLASS,
     OBJ_CLOSURE,
@@ -137,6 +150,18 @@ typedef enum {
     TYPE_SCRIPT,
 } FunctionType;
 
+
+/**
+ * @class ObjModule
+ * @brief Defining modules
+ */
+typedef struct {
+    Obj obj;
+    ObjString* name;
+    ObjString* path;
+    Table values;
+} ObjModule;
+
 /**
  * @class ObjFunction
  * @brief Defining functions as first class.
@@ -147,11 +172,14 @@ typedef struct {
     int upvalueCount;
     Chunk chunk;
     ObjString* name;
+
+    ObjModule* module;
+
     FunctionType type;
 } ObjFunction;
 
 /**
- * @brief Declare NativeFn as a function pointer that has a return type of
+ * @brief Declare NativeFn  as a function pointer that has a return type of
  * Value
  *
  */
@@ -236,6 +264,15 @@ typedef struct {
 } ObjBoundMethod;
 
 /**
+ * @brief Method to create a new Module
+ *
+ * @param vm 
+ * @param name The name of the module
+ * @return ObjModule* Pointer to new module
+ */
+ObjModule* newModule(VM* vm, ObjString* name);
+
+/**
  * @brief Method to create a new bound method
  *
  * @param receiver The receiver of the binding. Set to value to avoid 
@@ -266,7 +303,7 @@ ObjClosure* newClosure(VM* vm, ObjFunction* function);
  *
  * @return ObjFunction* A pointer to a new function object.
  */
-ObjFunction* newFunction(VM* vm, FunctionType type);
+ObjFunction* newFunction(VM* vm, ObjModule* module, FunctionType type);
 
 /**
  * @brief Method to create an ObjInstance

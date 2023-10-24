@@ -32,20 +32,20 @@ static void repl(VM* vm) {
             exit(0);
         }
 
-        interpret(vm, line);
+        interpret(vm, "repl", line);
     }
 }
 
-static void runFile(VM* vm, const char* path) {
+static void runFile(VM* vm, char* path) {
     char* source = readFile(path);
-    InterpretResult result = interpret(vm, source);
+    InterpretResult result = interpret(vm, path, source);
     free(source);
 
     if (result==INTERPRET_COMPILE_ERROR) exit(65);
     if (result==INTERPRET_RUNTIME_ERROR) exit(70);
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
     // init vm
     VM* vm = initVM(false);
 
