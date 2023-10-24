@@ -1419,6 +1419,24 @@ static void printStatement(Compiler* compiler) {
 }
 
 /**
+ * @brief Method to handle import statements
+ */
+static void importStatement(Compiler* compiler) {
+    consume(compiler, TOKEN_STRING, "Expect import path after 'import'.");
+    int importIndex = makeConstant(compiler,
+            OBJ_VAL(copyString(
+                    compiler->parser->vm,
+                    compiler->parser->previous.start + 1,
+                    compiler->parser->previous.length - 2
+                    )));
+    emitBytes(compiler, OP_IMPORT, importIndex);
+    emitByte(compiler, OP_POP);
+
+    emitByte(compiler, OP_IMPORT_END);
+    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after import statement");
+}
+
+/**
  * @brief Method to handle return statements
  */
 static void returnStatement(Compiler* compiler) {
@@ -1525,6 +1543,8 @@ static void declaration(Compiler* compiler) {
 static void statement(Compiler* compiler) {
     if (match(compiler, TOKEN_PRINT)) {
         printStatement(compiler);
+    } else if (match(compiler, TOKEN_IMPORT)) {
+        importStatement(compiler);
     } else if (match(compiler, TOKEN_FOR)) {
         forStatement(compiler);
     } else if (match(compiler, TOKEN_IF)) {

@@ -40,6 +40,9 @@ typedef enum {
     OP_INCREMENT,
     OP_DECREMENT,
 
+    OP_IMPORT,
+    OP_IMPORT_END,
+
     OP_NOT,
 
     OP_NEGATE,
