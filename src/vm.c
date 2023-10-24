@@ -163,7 +163,8 @@ void runtimeError(VM* vm, const char* format, ...) {
         CallFrame* frame = &vm->frames[i];
         ObjFunction* function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
-        fprintf(stderr, "[line %d] in ",
+        fprintf(stderr, "  At '%s'\n", function->module->name->chars);
+        fprintf(stderr, "  [line %d] in ",
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
             fprintf(stderr, "script\n");
@@ -202,8 +203,11 @@ VM* initVM(bool repl) {
     vm->grayCapacity = 0;
     vm->grayStack = NULL;
 
+    vm->lastModule = NULL;
+
     initTable(&vm->globals);
     initTable(&vm->strings);
+    initTable(&vm->modules);
 
     vm->initString = NULL;
     vm->initString = copyString(vm, "init", 4);
@@ -220,6 +224,7 @@ VM* initVM(bool repl) {
 void freeVM(VM* vm) {
     freeTable(vm, &vm->globals);
     freeTable(vm, &vm->strings);
+    freeTable(vm, &vm->modules);
     vm->initString = NULL;
     freeObjects(vm);
     free(vm);
@@ -336,21 +341,31 @@ static bool invokeFromClass(VM* vm, ObjClass* klass, ObjString* name, int argCou
  */
 static bool invoke(VM* vm, ObjString* name, int argCount) {
     Value receiver = peek(vm, argCount);
-    if (!IS_INSTANCE(receiver)) {
-        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
-                     name->chars);
-        return false;
-    }
-    ObjInstance* instance = AS_INSTANCE(receiver);
-
-    // before we look up a method in a class, we look for a field with the
-    // same name.
-    Value value;
-    if (tableGet(&instance->fields, name, &value)) {
-        vm->stackTop[-argCount -1] = value;
+//    if (!IS_INSTANCE(receiver)) {
+//        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
+//                     name->chars);
+//        return false;
+//    }
+    if (isObjType(receiver, OBJ_MODULE)) {
+        ObjModule* module = AS_MODULE(receiver);
+        Value value;
+        if (!tableGet(&module->values, name, &value)) {
+            runtimeError(vm, "Undefined module property '%s'.", name->chars);
+            return false;
+        }
         return callValue(vm, value, argCount);
+    } else {
+        ObjInstance* instance = AS_INSTANCE(receiver);
+
+        // before we look up a method in a class, we look for a field with the
+        // same name.
+        Value value;
+        if (tableGet(&instance->fields, name, &value)) {
+            vm->stackTop[-argCount -1] = value;
+            return callValue(vm, value, argCount);
+        }
+        return invokeFromClass(vm, instance->klass, name, argCount);
     }
-    return invokeFromClass(vm, instance->klass, name, argCount);
 }
 
 /**
@@ -587,11 +602,36 @@ static InterpretResult run(VM* vm) {
                 pop(vm);
                 break;
             }
-
             case OP_SET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 if (tableSet(vm, &vm->globals, name, peek(vm,0))) {
                     tableDelete(vm, &vm->globals, name);
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
+            case OP_GET_MODULE: {
+                ObjString* name = READ_STRING();
+                Value value;
+                if (!tableGet(&frame->closure->function->module->values, name, &value)) {
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(vm, value);
+                break;
+            }
+            case OP_DEFINE_MODULE: {
+                ObjString* name = READ_STRING();    
+                tableSet(vm, &frame->closure->function->module->values, name, peek(vm,0));
+                pop(vm);
+                break;
+            }
+
+            case OP_SET_MODULE: {
+                ObjString* name = READ_STRING();
+                if (tableSet(vm, &frame->closure->function->module->values, name, peek(vm,0))) {
+                    tableDelete(vm, &frame->closure->function->module->values, name);
                     runtimeError(vm, "Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -608,7 +648,7 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_GET_PROPERTY: {
-                if (!IS_INSTANCE(peek(vm,0))) {
+                /* if (!IS_INSTANCE(peek(vm,0))) {
                     runtimeError(vm, "Only instances have callable properties.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -626,10 +666,36 @@ static InterpretResult run(VM* vm) {
                     return INTERPRET_RUNTIME_ERROR;
                 }
 
-                // ????????
-                // runtimeError(vm, "Undefined property '%s' in '%s'.",
-                //         name->chars,
-                //         instance->klass->name->chars);
+                return INTERPRET_RUNTIME_ERROR; */
+                Value receiver = peek(vm, 0);
+
+                if (isObjType(receiver, OBJ_INSTANCE)) {
+
+                    ObjInstance* instance = AS_INSTANCE(peek(vm,0));
+                    ObjString* name = READ_STRING();
+
+                    Value value;
+                    // if the instance has the field with the name
+                    if (tableGet(&instance->fields, name, &value)) {
+                        pop(vm);
+                        push(vm, value);
+                        break;
+                    }
+                    if(!bindMethod(vm, instance->klass, name)) {
+                        return INTERPRET_RUNTIME_ERROR;
+                    }
+                } else if (isObjType(receiver, OBJ_MODULE)) {
+                    ObjModule* module = AS_MODULE(receiver);
+                    ObjString* name = READ_STRING();
+                    Value value;
+                    if (tableGet(&module->values, name, &value)) {
+                        pop(vm);
+                        push(vm, value);
+                        break;
+                    }
+                    runtimeError(vm, "Module '%s' has no attribute '%s'.",
+                            module->name->chars, name->chars);
+                }
                 return INTERPRET_RUNTIME_ERROR;
             }
             case OP_SET_PROPERTY: {
@@ -781,6 +847,10 @@ static InterpretResult run(VM* vm) {
                 call(vm, closure, 0);
                 frame = &vm->frames[vm->frameCount - 1];
 //                ip = frame->ip;
+                break;
+            }
+            case OP_IMPORT_VAR: {
+                push(vm, OBJ_VAL(vm->lastModule));
                 break;
             }
             case OP_IMPORT_END: {
