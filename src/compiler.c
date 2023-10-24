@@ -649,8 +649,17 @@ static void namedVariable(Compiler* compiler, Token name, bool canAssign) {
         setOp = OP_SET_UPVALUE;
     } else {
         arg = identifierConstant(compiler, &name);
-        getOp = OP_GET_GLOBAL;
-        setOp = OP_SET_GLOBAL;
+        /* getOp = OP_GET_GLOBAL;
+        setOp = OP_SET_GLOBAL; */
+        ObjString* string = copyString(compiler->parser->vm, name.start, name.length);
+        Value value;
+        if (tableGet(&compiler->parser->vm->globals, string, &value)) {
+            getOp = OP_GET_GLOBAL;
+            canAssign = false;
+        } else {
+            getOp = OP_GET_MODULE;
+            setOp = OP_SET_MODULE;
+        }
     }
 
     if (canAssign && match(compiler, TOKEN_EQUAL)) {
@@ -955,12 +964,19 @@ static void markInitialized(Compiler* compiler) {
  * @param global Variable index
  */
 static void defineVariable(Compiler* compiler, uint8_t global) {
+    if (compiler->scopeDepth == 0) {
+        emitBytes(compiler, OP_DEFINE_MODULE, global);
+    } else {
+        // Mark the local as defined now.
+        compiler->locals[compiler->localCount - 1].depth = compiler->scopeDepth;
+    }
+
     // don't define var if in local scope
-    if (compiler->scopeDepth > 0) {
+    /* if (compiler->scopeDepth > 0) {
         markInitialized(compiler);
         return;
     }
-    emitBytes(compiler, OP_DEFINE_GLOBAL, global);
+    emitBytes(compiler, OP_DEFINE_GLOBAL, global); */
 }
 
 /**
@@ -1228,18 +1244,24 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_BREAK:
         case OP_INCREMENT:
         case OP_DECREMENT:
+        case OP_IMPORT_VAR:
+        case OP_IMPORT_END:
             return 0;
 
         case OP_CONSTANT:
         case OP_GET_LOCAL:
         case OP_SET_LOCAL:
         case OP_GET_GLOBAL:
+        case OP_GET_MODULE:
+        case OP_SET_MODULE:
+        case OP_DEFINE_MODULE:
         case OP_GET_UPVALUE:
         case OP_SET_UPVALUE:
         case OP_GET_PROPERTY:
         case OP_SET_PROPERTY:
         case OP_GET_SUPER:
         case OP_METHOD:
+        case OP_IMPORT:
             return 1;
 
         case OP_JUMP:
@@ -1432,7 +1454,11 @@ static void importStatement(Compiler* compiler) {
                     )));
     emitBytes(compiler, OP_IMPORT, importIndex);
     emitByte(compiler, OP_POP);
-
+    if (match(compiler, TOKEN_AS)) {
+        uint8_t importVarName = parseVariable(compiler, "Expect import namespace", false, false);
+        emitByte(compiler, OP_IMPORT_VAR);
+        defineVariable(compiler, importVarName);
+    }
     emitByte(compiler, OP_IMPORT_END);
     consume(compiler, TOKEN_SEMICOLON, "Expect ';' after import statement");
 }
@@ -1499,6 +1525,7 @@ static void synchronize(Compiler* compiler) {
             case TOKEN_BREAK:
             case TOKEN_PRINT:
             case TOKEN_RETURN:
+            case TOKEN_IMPORT:
                 return;
 
             default:
