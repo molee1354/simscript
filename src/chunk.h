@@ -18,9 +18,15 @@ typedef enum {
     OP_POP,
     OP_GET_LOCAL,
     OP_SET_LOCAL,
+
     OP_GET_GLOBAL,
     OP_DEFINE_GLOBAL,
     OP_SET_GLOBAL,
+
+    OP_GET_MODULE,
+    OP_DEFINE_MODULE,
+    OP_SET_MODULE,
+
     OP_GET_UPVALUE,
     OP_SET_UPVALUE,
     OP_GET_PROPERTY,
@@ -41,6 +47,7 @@ typedef enum {
     OP_DECREMENT,
 
     OP_IMPORT,
+    OP_IMPORT_VAR,
     OP_IMPORT_END,
 
     OP_NOT,
