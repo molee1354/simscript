@@ -49,7 +49,7 @@ typedef struct {
     int depth;
     bool isConst;
     bool isScoped;
-} ResolvedLocal;
+} ResolvedVar;
 
 /**
  * @brief Struct to hold upvalues

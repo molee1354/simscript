@@ -17,15 +17,6 @@
 
 #define REPL (parser->vm->repl)
 
-
-// Parser parser;
-
-// global compilers bad for multithreading
-// Compiler* current = NULL;
-
-// Compiler for class scope
-// ClassCompiler* currentClass = NULL;
-
 /**
  * @brief Method to return the current chunk in compilation
  *
@@ -44,20 +35,29 @@ static Chunk* currentChunk(Compiler* compiler) {
 static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
-    if (REPL) {
-        fprintf(stderr, "COMPILER ERROR:\n\t[REPL] Error");
-    } else {
-        fprintf(stderr, "COMPILER ERROR:\n  At '%s'\n  [line %d] Error", parser->module->name->chars,token->line);
-    }
+    fprintf(stderr, "COMPILER ERROR:\n");
+    fprintf(stderr, "  %s\n", message);
+    fprintf(stderr, "  @ '%s', line %d\n",
+                parser->module->name->chars, token->line);
 
     if (token->type==TOKEN_EOF) {
-        fprintf(stderr, " at end");
+        fprintf(stderr, "  at end\n");
+        // fprintf(stderr, " : %s\n", message);
     } else if (token->type == TOKEN_ERROR) {
         // pass
     } else {
-        fprintf(stderr, " at '%.*s'", token->length, token->start);
+        fprintf(stderr, "  %.*s _ %.*s\n",
+                parser->previous.length,
+                parser->previous.start,
+                token->length,
+                token->start
+                );
+        // fprintf(stderr, " : %s\n", message);
+        for (int i=0; i < parser->previous.length+3; i++) {
+            fprintf(stderr, " ");
+        }
+        fprintf(stderr, "%s\n", "^");
     }
-    fprintf(stderr, ": %s\n", message);
     parser->hadError = true;
 }
 
@@ -368,8 +368,8 @@ static bool identifiersEqual(Token* a, Token* b) {
  * @param name The name of the token
  * @return static int The local index where the variable is found, -1 if not. 
  */
-static ResolvedLocal resolveLocal(Compiler* compiler, Token* name) {
-    ResolvedLocal out = {-1, false, false};
+static ResolvedVar resolveLocal(Compiler* compiler, Token* name) {
+    ResolvedVar out = {-1, false, false};
     for (int i = compiler->localCount -1; i>=0; i--) {
         Local* local = &compiler->locals[i];
         if (identifiersEqual(name, &local->name)) {
@@ -421,27 +421,42 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
  * @param name The name of the token.
  * @return static int The upvalue index for that variable
  */
-static int resolveUpvalue(Compiler* compiler, Token* name) {
-    if (compiler->enclosing == NULL) return -1;
+static ResolvedVar resolveUpvalue(Compiler* compiler, Token* name) {
+    ResolvedVar out = {-1, false, false};
+    // if (compiler->enclosing == NULL) return -1;
+    if (compiler->enclosing == NULL) return out;
 
     int local = resolveLocal(compiler->enclosing, name).depth;
     bool isScoped = resolveLocal(compiler->enclosing, name).isScoped;
-    if (isScoped) return -1;
+    bool isConst = resolveLocal(compiler->enclosing, name).isConst;
+
+    // if (isScoped) return -1;
+    if (isScoped) return out;
+
     if (local != -1) { // if local var is found
         // for resolving an identifier, mark it as "captured"
         compiler->enclosing->locals[local].isCaptured = true;
-        return addUpvalue(compiler, (uint8_t)local, true);
+        // return addUpvalue(compiler, (uint8_t)local, true);
+        out.depth = addUpvalue(compiler, (uint8_t)local, true);
+        out.isConst = isConst;
+        out.isScoped = isScoped; // should be false
+        return out;
     }
 
     /* recursive use of resolveUpvalue to capture from its immediately
      * surrounding function (arg to addUpvalue is false). 
      * This is for "not top-level" 
      */
-    int upvalue = resolveUpvalue(compiler->enclosing, name);
+    int upvalue = resolveUpvalue(compiler->enclosing, name).depth;
     if (upvalue != -1) {
-        return addUpvalue(compiler, (uint8_t)upvalue, false);
+        // return addUpvalue(compiler, (uint8_t)upvalue, false);
+        out.depth = addUpvalue(compiler, (uint8_t)upvalue, false);
+        out.isConst = isConst;
+        out.isScoped = isScoped; // should be false
+        return out;
     }
-    return -1;
+    // return -1;
+    return out;
 }
 
 /**
@@ -636,7 +651,7 @@ static void string(Compiler* compiler, bool canAssign __attribute__((unused))) {
  */
 static void namedVariable(Compiler* compiler, Token name, bool canAssign) {
     uint8_t getOp, setOp;
-    ResolvedLocal resLoc = resolveLocal(compiler, &name);
+    ResolvedVar resLoc = resolveLocal(compiler, &name);
     int arg = resLoc.depth;
     bool isConst = resLoc.isConst;
     bool isScoped = resLoc.isScoped;
@@ -644,7 +659,9 @@ static void namedVariable(Compiler* compiler, Token name, bool canAssign) {
     if (arg != -1) { // -1 for global state
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
-    } else if ( !isScoped && (arg = resolveUpvalue(compiler, &name)) != -1) {
+    } else if ( !isScoped &&
+                (arg = resolveUpvalue(compiler, &name).depth) != -1) {
+        isConst = resolveUpvalue(compiler, &name).isConst;
         getOp = OP_GET_UPVALUE;
         setOp = OP_SET_UPVALUE;
     } else {

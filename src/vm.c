@@ -150,7 +150,7 @@ static void resetStack(VM* vm) {
 void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    fprintf(stderr, "RUNTIME ERROR\n");
+    fprintf(stderr, "RUNTIME ERROR:\n");
     vfprintf(stderr, format, args);
     va_end(args);
     fputs("\n", stderr);
@@ -163,13 +163,14 @@ void runtimeError(VM* vm, const char* format, ...) {
         CallFrame* frame = &vm->frames[i];
         ObjFunction* function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
-        fprintf(stderr, "  At '%s'\n", function->module->name->chars);
-        fprintf(stderr, "  [line %d] in ",
+
+        fprintf(stderr, "  @ '%s', line %d in ",
+                function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n");
+            fprintf(stderr, "script\n\n");
         } else{
-            fprintf(stderr, "%s()\n", function->name->chars);
+            fprintf(stderr, "%s()\n\n", function->name->chars);
         }
     }
     resetStack(vm);
@@ -807,6 +808,7 @@ static InterpretResult run(VM* vm) {
                 if (!validPath(frame->closure->function->module->path->chars,
                             fileName->chars, path)) {
                     runtimeError(vm, "Could not open file '%s'.", fileName->chars);
+                    return INTERPRET_RUNTIME_ERROR;
                 }
 
                 ObjString* pathObj = copyString(vm, path, strlen(path));

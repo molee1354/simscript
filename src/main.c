@@ -37,7 +37,8 @@ static void repl(VM* vm) {
 }
 
 static void runFile(VM* vm, char* path) {
-    char* source = readFile(path);
+    // char* source = readFile(path);
+    char* source = readFile_VM(vm, path);
     InterpretResult result = interpret(vm, path, source);
     free(source);
 
