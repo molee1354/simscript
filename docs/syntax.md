@@ -26,20 +26,20 @@ While Simscript does not require explicit type declarations, there are a few bui
 
 Variables in Simscript are dynamically typed. So we needn't worry about the cerebral overhead that comes from type checking when writing code.
 
-Here we call a few different types of variables in Simscript:
+Here we define some variables in Simscript:
 
 ```javascript
 var foo = 3;
-let bar = "Khan";
+local var bar = "Khan";
 ```
 
-Both the `var` keyword and the `let` keyword allow us to declare variables. The `var` keyword creates a varaible that can by called across scopes, which is particularly useful for closures. The `let` keyword creates a variable that is strictly local. Variables created using the `let` keyword may not be called outside its local scope. The differences in usage become evident when using closures.
+The `var` keyword allows us to declare variables. An optional `local` keyword can be added before the `var` keyword to control the scope of the variable. Local variables cannot be called outside its local scope, meaning that nested (or enclosing) scopes will not have access to the variable.
 
 *Declaring* a variable and *defining* a variable are two different things in Simscript. You can declare a variable and go on to define it later in your code by assigning a value.
 
 ```javascript
 var foo;
-let bar;
+local var bar;
 
 foo = 3;
 bar = "Khan";
@@ -47,19 +47,21 @@ bar = "Khan";
 
 ## Constants
 
-Constants (or constant variables) in Simscript are created by adding the `const` keyword in front of a variable declaration. Constants, as the name suggests, cannot be reassigned. They must also be have simultaneous declaration and definition. The same scoping rules apply as with variables.
+Constants (or constant variables) in Simscript are created by adding the `const` keyword in front of a variable name. Constants, as the name suggests, cannot be reassigned. They must also be have simultaneous declaration and definition. The same scoping rules apply as with variables.
 
 ```javascript
-const var foo = 3;
-const let bar = "Khan";
+const foo = 3;
+local const bar = "Khan";
 
 // This is not allowed
 foo = 4;
 
 // This is also not allowed
-const var baz;
+const baz;
 baz = 4;
 ```
+
+Adding the `local` in front of a constant declaration scopes the constant to the local scope, meaning that it won't be accessed in any other scope (either nested or enclosing).
 
 ## Blocks
 
@@ -67,11 +69,11 @@ Blocks in Simscript are specified with curly braces. Anything that comes within 
 
 ```javascript
 {
-    let foo = 3; 
-    print "This is " + foo; // This is 3
+    local var foo = 3; 
+    echo "This is " + foo; // This is 3
 }
-let foo = 4;
-print "This is " + foo; // This is 4
+local var foo = 4;
+echo "This is " + foo; // This is 4
 ```
 
 ## Conditionals
@@ -147,7 +149,7 @@ function outside() {
     var foo = 3;
 
     function inside() {
-        print "This is " + foo;
+        echo "This is " + foo;
     }
 
     // functions may be returned
@@ -158,7 +160,7 @@ var closure = outside();
 closure();
 ```
 
-If the `foo` variable were to be declared using the `let` keyword, this code would not work as `foo` would be strictly scoped to the local scope that it was declared in. So when using closures, it is important to distinguish between the `var` and `let` keywords depending on its use case.
+If the `foo` variable were to be declared as a local variable, this code would not work as `foo` would be strictly scoped to the local scope that it was declared in. So when using closures, it is important to distinguish between the `var` and `local var` keywords depending on its use case.
 
 ## Classes
 
@@ -172,7 +174,7 @@ class Animal {
         this.sound = sound;
     }
     speak() {
-        print this.sound + "!";
+        echo this.sound + "!";
     }
 }
 
@@ -206,7 +208,7 @@ class Animal {
         this.type = type;
     }
     speak(sound) {
-        print sound + "!";
+        echo sound + "!";
     }
 }
 
@@ -216,7 +218,7 @@ class Dog extends Animal {
         super.init("Dog");
     }
     bark() {
-        print "My name is " + this.name;
+        echo "My name is " + this.name;
         this.speak("Bark");
     }
 }

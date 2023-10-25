@@ -481,6 +481,7 @@ static char* toChar(double num, int length) {
 static void toString(VM* vm, Value value) {
     if (!IS_NUMBER(value)) {
         runtimeError(vm, "Unsupported type conversion to string.");
+        return;
     }
     double num = (double)AS_NUMBER(value);
     int length;
@@ -508,6 +509,10 @@ static void concatenate(VM* vm) {
 
     ObjString* b = AS_STRING(peek(vm, 0));
     ObjString* a = AS_STRING(peek(vm, 1));
+    if (a == NULL || b == NULL)  {
+        runtimeError(vm, "Failed string conversion.");
+        return;
+    }
 
     // the total length of the new string
     int length = a->length + b->length;

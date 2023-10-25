@@ -892,7 +892,7 @@ ParseRule rules[] = {
     [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
     [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_LET]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LOCAL]           = {NULL,     NULL,   PREC_NONE},
     [TOKEN_CONST]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
@@ -1552,7 +1552,7 @@ static void declaration(Compiler* compiler) {
         varDeclaration(compiler, false);
     } else if (match(compiler, TOKEN_CONST)) {
         constDeclaration(compiler, false);
-    } else if (match(compiler, TOKEN_LET)) {
+    } else if (match(compiler, TOKEN_LOCAL)) {
         if (match(compiler, TOKEN_VAR)) {
             varDeclaration(compiler, true);
         } else if (match(compiler, TOKEN_CONST)) {
