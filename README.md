@@ -2,8 +2,6 @@
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
-Quote of the version: *"So it goes"* -Kurt Vonnegut.
-
 ## Table of Contents
 
 - [simscript `v0.0.6rc1`](#simscript-v006rc1)
@@ -14,9 +12,8 @@ Quote of the version: *"So it goes"* -Kurt Vonnegut.
     - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Non-global Variables for Simscript VM and Compiler](#non-global-variables-for-simscript-v006rc1-and-compiler)
-    - [Increment / Decrement Operations on Object Properties](#increment--decrement-operations-on-object-properties)
-    - [New Tests](#new-tests)
+    - [Importing Modules with the `module` Keyword](#importing-modules-with-the-module-keyword)
+    - [Updated Syntax with the `local` Keyword](#updated-syntax-with-the-local-keyword)
   - [Documentation](#documentation)
 
 ## Download
@@ -96,19 +93,15 @@ path/to/script.ss
 
 Here are some new features in version (`v0.0.6rc1`). A full log of releases can be found [here](./docs/release.md).
 
-This new version of Simscript is one of the biggest changes for the source code, but its manifestations in language syntax is minimal if at all. New features in version `v0.0.5` comprise of changes in the the Simscript virtual machine and the compiler, along with some important bug fixes.
+Simscript `v0.0.6` comes with some new and exciting changes, along with significant syntax updates. **This update will be one of the few updates where source code from previous versions won't be compatible**. So bear that in mind.
 
-### Non-global Variables for Simscript VM and Compiler
+### Importing Modules with the `module` Keyword
 
-Prior to `v0.0.5`, each Simhub virtual machine and compiler had only one single representation at runtime, meaning that once the `simscript` binary was run, the VM and the compiler instance created was the only state that the code could ever be in. While this keeps the code simple, any performance improvements, particularly those involving the use of multiple threads, is very difficult or even impossible to implement. By changing the VM and compiler representations from global variables to passable parameters, new possibilities of performance optimizations now exist. Thorough testing was done to ensure that the current state of Simscript is backwards-compatible.
+Simscript can now import external modules. This is a really exciting new addition as this allows for the development of larger-scale projects. You can check the updated syntax in the [syntax](./syntax) page.
 
-### Increment / Decrement Operations on Object Properties
+### Updated Syntax with the `local` Keyword
 
-Using increment/decrement operators (`++`, `--`), and operation-assignment operators (`+=`, `-=`, `*=`, `/=`) was unreliable with object properties, and in the case of the decrement operator `--`, even with normal variables. Changes in version `v0.0.5` fixed them.
-
-### New Tests
-
-Version `v0.0.5` come with some new tests and utility scripts to help with the development workflow.
+Setting variable behavior with keywords prior to version `v0.0.6` was a bit unintuitive. Keywords used to set variable behavior did not fully reflect its functionality (looking at you, `let`). To fix this, a new `local` keyword was added and the `const` keyword is now a 'first-level' keyword when declaring variables, meaning that it now should come right before the variable name. Details in it usage can be found on the [syntax](./syntax.md) page.
 
 ## Documentation
 

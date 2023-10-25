@@ -233,3 +233,64 @@ The code above would output:
 My name is Khan
 Bark!
 ```
+
+## Modules
+
+Simscript supports import modules. Variables, functions, and classes defined in an external module can be imported to the current module with the `module` keyword.
+
+Say we have a file `module.ss` where some functions, variables, and classes are defined.
+
+```javascript
+// module.ss
+class Animal {
+    speak(sound) {
+        echo sound + "!";
+    }
+}
+
+function greet(name) {
+    echo "Hello, " + name;
+}
+
+var name = "Khan";
+greet(name);
+```
+
+The module keyword can be used to import `module.ss` into `file.ss`. The `module` keyword runs the code inside whatever module file is being referenced.
+
+```javascript
+// file.ss
+module "module.ss";
+```
+
+Running this code would result in:
+
+```javascript
+Hello, Khan
+```
+
+The output is from the `greet()` function call in `module.ss`.
+
+After the `module` keyword, a relative path to the module should be provided as a string so that Simscript will be able to parse the file.
+
+In the example above, whatever code was in the `"module.ss"` will be run. However, you won't be able to access the symbols as the import alias hasn't been defined yet.
+
+To access the symbols from within `file.ss`, an import alias has to be created.
+
+```javascript
+// file.ss
+module myModule = "module.ss";
+
+echo myModule.name; 
+myModule.greet("Marley");
+myModule.Animal()
+```
+
+Running this code would result in:
+
+```javascript
+Hello, Khan    // from "module.ss"
+Khan           // from "file.ss"
+Hello, Marley  // from "file.ss"
+Bark!          // from "file.ss"
+```
