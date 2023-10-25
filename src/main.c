@@ -9,7 +9,7 @@
 #include "vm.h"
 
 #define VERSION "0.0.6rc1"
-#define TIME    "Oct 24 2023, 01:24"
+#define TIME    "Oct 25 2023, 09:35"
 
 #ifdef _WIN32
 #define PLATFORM "Windows"
