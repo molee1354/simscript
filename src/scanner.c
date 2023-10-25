@@ -246,15 +246,17 @@ static Tokentype identifierType() {
               }
             }
             break;
-        case 'i':
+        /* case 'i':
             if (scanner.current-scanner.start > 1) {
               switch (scanner.start[1]) {
                   case 'f': return checkKeyword(2,0, "", TOKEN_IF);
-                  case 'm': return checkKeyword(2,4, "port", TOKEN_IMPORT);
+                  case 'm': return checkKeyword(2,4, "port", TOKEN_MODULE);
               }
             }
-            break;
+            break; */
+        case 'i': return checkKeyword(1, 1, "f", TOKEN_IF);
         case 'l': return checkKeyword(1, 2, "et", TOKEN_LET);
+        case 'm': return checkKeyword(1, 5, "odule", TOKEN_MODULE);
         case 'n': return checkKeyword(1, 3, "ull", TOKEN_NULL);
         case 'o': return checkKeyword(1, 1, "r", TOKEN_OR);
         case 'r': return checkKeyword(1, 5, "eturn", TOKEN_RETURN);

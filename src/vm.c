@@ -799,7 +799,7 @@ static InterpretResult run(VM* vm) {
                 push(vm,  NUMBER_VAL( AS_NUMBER(pop(vm))-1 ) );
                 break;
             }
-            case OP_IMPORT: {
+            case OP_MODULE: {
                 ObjString* fileName = READ_STRING();
                 Value moduleVal;
 
@@ -849,11 +849,11 @@ static InterpretResult run(VM* vm) {
 //                ip = frame->ip;
                 break;
             }
-            case OP_IMPORT_VAR: {
+            case OP_MODULE_VAR: {
                 push(vm, OBJ_VAL(vm->lastModule));
                 break;
             }
-            case OP_IMPORT_END: {
+            case OP_MODULE_END: {
                 vm->lastModule = frame->closure->function->module;
                 break;
             }

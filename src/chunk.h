@@ -46,9 +46,9 @@ typedef enum {
     OP_INCREMENT,
     OP_DECREMENT,
 
-    OP_IMPORT,
-    OP_IMPORT_VAR,
-    OP_IMPORT_END,
+    OP_MODULE,
+    OP_MODULE_VAR,
+    OP_MODULE_END,
 
     OP_NOT,
 

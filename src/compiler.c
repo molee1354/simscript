@@ -1244,8 +1244,8 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_BREAK:
         case OP_INCREMENT:
         case OP_DECREMENT:
-        case OP_IMPORT_VAR:
-        case OP_IMPORT_END:
+        case OP_MODULE_VAR:
+        case OP_MODULE_END:
             return 0;
 
         case OP_CONSTANT:
@@ -1261,7 +1261,7 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_SET_PROPERTY:
         case OP_GET_SUPER:
         case OP_METHOD:
-        case OP_IMPORT:
+        case OP_MODULE:
             return 1;
 
         case OP_JUMP:
@@ -1441,26 +1441,32 @@ static void printStatement(Compiler* compiler) {
     emitByte(compiler, OP_PRINT);
 }
 
-/**
- * @brief Method to handle import statements
- */
-static void importStatement(Compiler* compiler) {
-    consume(compiler, TOKEN_STRING, "Expect import path after 'import'.");
+static void import(Compiler* compiler) {
     int importIndex = makeConstant(compiler,
             OBJ_VAL(copyString(
                     compiler->parser->vm,
                     compiler->parser->previous.start + 1,
                     compiler->parser->previous.length - 2
                     )));
-    emitBytes(compiler, OP_IMPORT, importIndex);
+    emitBytes(compiler, OP_MODULE, importIndex);
     emitByte(compiler, OP_POP);
-    if (match(compiler, TOKEN_AS)) {
-        uint8_t importVarName = parseVariable(compiler, "Expect import namespace", false, false);
-        emitByte(compiler, OP_IMPORT_VAR);
-        defineVariable(compiler, importVarName);
+}
+/**
+ * @brief Method to handle module statements
+ */
+static void moduleStatement(Compiler* compiler) {
+    if (match(compiler, TOKEN_STRING)) {
+        import(compiler);
+    } else if (check(compiler, TOKEN_IDENTIFIER)) {
+        import(compiler);
+        uint8_t moduleVarName = parseVariable(compiler, "Expect import namespace", false, false);
+        consume(compiler, TOKEN_EQUAL, "Missing assignment '=' to module variable");
+        consume(compiler, TOKEN_STRING, "Expect module path after '='.");
+        emitByte(compiler, OP_MODULE_VAR);
+        defineVariable(compiler, moduleVarName);
     }
-    emitByte(compiler, OP_IMPORT_END);
-    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after import statement");
+    emitByte(compiler, OP_MODULE_END);
+    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after module import");
 }
 
 /**
@@ -1525,7 +1531,7 @@ static void synchronize(Compiler* compiler) {
             case TOKEN_BREAK:
             case TOKEN_PRINT:
             case TOKEN_RETURN:
-            case TOKEN_IMPORT:
+            case TOKEN_MODULE:
                 return;
 
             default:
@@ -1571,8 +1577,8 @@ static void declaration(Compiler* compiler) {
 static void statement(Compiler* compiler) {
     if (match(compiler, TOKEN_PRINT)) {
         printStatement(compiler);
-    } else if (match(compiler, TOKEN_IMPORT)) {
-        importStatement(compiler);
+    } else if (match(compiler, TOKEN_MODULE)) {
+        moduleStatement(compiler);
     } else if (match(compiler, TOKEN_FOR)) {
         forStatement(compiler);
     } else if (match(compiler, TOKEN_IF)) {
