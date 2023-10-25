@@ -12,13 +12,6 @@
 #include "read.h"
 #include "vm.h"
 
-// check for platform
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
-
 /**
  * @brief Global vm instance to be referred to by all the methods. 
  * May later be an argument to each of the functions.

@@ -5,6 +5,13 @@
 
 #include "natives.h"
 
+// check for platform
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 /**
  * @brief Defining the native "clock()" function.
  *
