@@ -6,21 +6,11 @@
 
 #include "chunk.h"
 #include "common.h"
-#include "compiler.h"
 #include "debug.h"
-#include "object.h"
 #include "memory.h"
-#include "table.h"
-#include "value.h"
+#include "natives.h"
 #include "read.h"
 #include "vm.h"
-
-// check for platform
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
@@ -28,111 +18,6 @@
  *
  */
 // VM vm;
-
-// Runtime error function declaration
-static void runtimeError(VM* vm, const char* format, ...);
-
-/**
- * @brief Defining the native "clock()" function.
- *
- * @param argcount The number of arguments 
- * @param args The arguments
- * @return Value The elapsed time since the program started running
- */
-static Value clockNative(VM* vm __attribute__((unused)), int argCount __attribute__((unused)),
-        Value* args __attribute__((unused))) {
-    return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
-}
-
-/**
- * @brief Defining the native "sleep()" function.
- *
- * @param argcount The number of arguments 
- * @param args The arguments
- * @return Value Null val.
- */
-static Value sleepNative(VM* vm, int argCount, Value* args) {
-    if (argCount > 1) {
-        runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
-    }
-    if (!IS_NUMBER(args[0])) {
-        runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
-    }
-    int waitFor = (int)AS_NUMBER(args[0]);
-
-    /* clock_t timeStart = clock();
-    while (clock() < timeStart + waitFor)
-        ; */
-#ifdef _WIN32
-    Sleep(waitFor*1000);
-#else
-    sleep(waitFor);
-#endif
-    return NULL_VAL;
-}
-
-/**
- * @brief Method to exit the code with an exitcode
- *
- * @param argcount The number of arguments 
- * @param args The arguments
- * @return Value No return value
- */
-static Value exitNative(VM* vm, int argCount, Value* args) {
-    if (argCount > 1) {
-        runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
-    }
-    if (!IS_NUMBER(args[0])) {
-        runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
-    }
-    int exitCode = (int)AS_NUMBER(args[0]);
-    printf("Program exit with exitcode %d\n", exitCode);
-    exit(exitCode);
-}
-
-/**
- * @brief Defining the native "puts()" function.
- *
- * @param argcount The number of arguments 
- * @param args The arguments
- * @return Value NULL_VAL
- */
-static Value putsNative(VM* vm, int argCount, Value* args) {
-    if (argCount > 1) {
-        runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
-    }
-    if (!IS_STRING(args[0])) {
-        runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
-    }
-    printf("%s\n", AS_CSTRING(args[0]));
-    return NULL_VAL;
-}
-
-/**
- * @brief Defining the native "system()" function.
- *
- * @param argcount The number of arguments 
- * @param args The arguments
- * @return Value NULL_VAL
- */
-static Value systemNative(VM* vm, int argCount, Value* args) {
-    if (argCount > 1) {
-        runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
-    }
-    if (!IS_STRING(args[0])) {
-        runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
-    }
-    system(AS_CSTRING(args[0]));
-    return NULL_VAL;
-}
 
 /**
  * @brief Method to reset the VM stack
@@ -150,10 +35,10 @@ static void resetStack(VM* vm) {
  * @param format The print format for error messaging
  *
  */
-static void runtimeError(VM* vm, const char* format, ...) {
+void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    fprintf(stderr, "RUNTIME ERROR\n");
+    fprintf(stderr, "RUNTIME ERROR:\n");
     vfprintf(stderr, format, args);
     va_end(args);
     fputs("\n", stderr);
@@ -166,30 +51,17 @@ static void runtimeError(VM* vm, const char* format, ...) {
         CallFrame* frame = &vm->frames[i];
         ObjFunction* function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
-        fprintf(stderr, "[line %d] in ",
+
+        fprintf(stderr, "  @ '%s', line %d in ",
+                function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n");
+            fprintf(stderr, "script\n\n");
         } else{
-            fprintf(stderr, "%s()\n", function->name->chars);
+            fprintf(stderr, "%s()\n\n", function->name->chars);
         }
     }
     resetStack(vm);
-}
-
-/**
- * @brief Method to define new native functions. It takes a pointer to a C
- * function and the name it will be known in the language implementation
- *
- * @param name Name of native function
- * @param function Pointer to C function
- */
-static void defineNative(VM* vm, const char* name, NativeFn function) {
-    push( vm, OBJ_VAL(copyString(vm, name, (int)strlen(name))) );
-    push( vm, OBJ_VAL(newNative(vm, function)) );
-    tableSet(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
-    pop(vm);
-    pop(vm);
 }
 
 VM* initVM(bool repl) {
@@ -205,24 +77,24 @@ VM* initVM(bool repl) {
     vm->grayCapacity = 0;
     vm->grayStack = NULL;
 
+    vm->lastModule = NULL;
+
     initTable(&vm->globals);
     initTable(&vm->strings);
+    initTable(&vm->modules);
 
     vm->initString = NULL;
     vm->initString = copyString(vm, "init", 4);
 
     // defining native functions
-    defineNative(vm, "clock", clockNative);
-    defineNative(vm, "puts", putsNative);
-    defineNative(vm, "exit", exitNative);
-    defineNative(vm, "sleep", sleepNative);
-    defineNative(vm, "system", systemNative);
+    defineNatives(vm);
     return vm;
 }
 
 void freeVM(VM* vm) {
     freeTable(vm, &vm->globals);
     freeTable(vm, &vm->strings);
+    freeTable(vm, &vm->modules);
     vm->initString = NULL;
     freeObjects(vm);
     free(vm);
@@ -339,21 +211,31 @@ static bool invokeFromClass(VM* vm, ObjClass* klass, ObjString* name, int argCou
  */
 static bool invoke(VM* vm, ObjString* name, int argCount) {
     Value receiver = peek(vm, argCount);
-    if (!IS_INSTANCE(receiver)) {
-        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
-                     name->chars);
-        return false;
-    }
-    ObjInstance* instance = AS_INSTANCE(receiver);
-
-    // before we look up a method in a class, we look for a field with the
-    // same name.
-    Value value;
-    if (tableGet(&instance->fields, name, &value)) {
-        vm->stackTop[-argCount -1] = value;
+//    if (!IS_INSTANCE(receiver)) {
+//        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
+//                     name->chars);
+//        return false;
+//    }
+    if (isObjType(receiver, OBJ_MODULE)) {
+        ObjModule* module = AS_MODULE(receiver);
+        Value value;
+        if (!tableGet(&module->values, name, &value)) {
+            runtimeError(vm, "Undefined module property '%s'.", name->chars);
+            return false;
+        }
         return callValue(vm, value, argCount);
+    } else {
+        ObjInstance* instance = AS_INSTANCE(receiver);
+
+        // before we look up a method in a class, we look for a field with the
+        // same name.
+        Value value;
+        if (tableGet(&instance->fields, name, &value)) {
+            vm->stackTop[-argCount -1] = value;
+            return callValue(vm, value, argCount);
+        }
+        return invokeFromClass(vm, instance->klass, name, argCount);
     }
-    return invokeFromClass(vm, instance->klass, name, argCount);
 }
 
 /**
@@ -468,6 +350,7 @@ static char* toChar(double num, int length) {
 static void toString(VM* vm, Value value) {
     if (!IS_NUMBER(value)) {
         runtimeError(vm, "Unsupported type conversion to string.");
+        return;
     }
     double num = (double)AS_NUMBER(value);
     int length;
@@ -495,6 +378,10 @@ static void concatenate(VM* vm) {
 
     ObjString* b = AS_STRING(peek(vm, 0));
     ObjString* a = AS_STRING(peek(vm, 1));
+    if (a == NULL || b == NULL)  {
+        runtimeError(vm, "Failed string conversion.");
+        return;
+    }
 
     // the total length of the new string
     int length = a->length + b->length;
@@ -511,9 +398,10 @@ static void concatenate(VM* vm) {
 
 static InterpretResult run(VM* vm) {
     CallFrame* frame = &vm->frames[vm->frameCount-1];
+    // register uint8_t* ip = frame->ip;
 
 // ip set to the instruction about to be executed
-#define READ_BYTE()     ( *frame->ip++ ) 
+#define READ_BYTE()     ( *frame->ip++ )
 
 #define READ_SHORT() \
     ( frame->ip += 2, \
@@ -589,11 +477,36 @@ static InterpretResult run(VM* vm) {
                 pop(vm);
                 break;
             }
-
             case OP_SET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 if (tableSet(vm, &vm->globals, name, peek(vm,0))) {
                     tableDelete(vm, &vm->globals, name);
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
+            case OP_GET_MODULE: {
+                ObjString* name = READ_STRING();
+                Value value;
+                if (!tableGet(&frame->closure->function->module->values, name, &value)) {
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(vm, value);
+                break;
+            }
+            case OP_DEFINE_MODULE: {
+                ObjString* name = READ_STRING();    
+                tableSet(vm, &frame->closure->function->module->values, name, peek(vm,0));
+                pop(vm);
+                break;
+            }
+
+            case OP_SET_MODULE: {
+                ObjString* name = READ_STRING();
+                if (tableSet(vm, &frame->closure->function->module->values, name, peek(vm,0))) {
+                    tableDelete(vm, &frame->closure->function->module->values, name);
                     runtimeError(vm, "Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -610,7 +523,7 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_GET_PROPERTY: {
-                if (!IS_INSTANCE(peek(vm,0))) {
+                /* if (!IS_INSTANCE(peek(vm,0))) {
                     runtimeError(vm, "Only instances have callable properties.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -628,10 +541,36 @@ static InterpretResult run(VM* vm) {
                     return INTERPRET_RUNTIME_ERROR;
                 }
 
-                // ????????
-                // runtimeError(vm, "Undefined property '%s' in '%s'.",
-                //         name->chars,
-                //         instance->klass->name->chars);
+                return INTERPRET_RUNTIME_ERROR; */
+                Value receiver = peek(vm, 0);
+
+                if (isObjType(receiver, OBJ_INSTANCE)) {
+
+                    ObjInstance* instance = AS_INSTANCE(peek(vm,0));
+                    ObjString* name = READ_STRING();
+
+                    Value value;
+                    // if the instance has the field with the name
+                    if (tableGet(&instance->fields, name, &value)) {
+                        pop(vm);
+                        push(vm, value);
+                        break;
+                    }
+                    if(!bindMethod(vm, instance->klass, name)) {
+                        return INTERPRET_RUNTIME_ERROR;
+                    }
+                } else if (isObjType(receiver, OBJ_MODULE)) {
+                    ObjModule* module = AS_MODULE(receiver);
+                    ObjString* name = READ_STRING();
+                    Value value;
+                    if (tableGet(&module->values, name, &value)) {
+                        pop(vm);
+                        push(vm, value);
+                        break;
+                    }
+                    runtimeError(vm, "Module '%s' has no attribute '%s'.",
+                            module->name->chars, name->chars);
+                }
                 return INTERPRET_RUNTIME_ERROR;
             }
             case OP_SET_PROPERTY: {
@@ -735,7 +674,65 @@ static InterpretResult run(VM* vm) {
                 push(vm,  NUMBER_VAL( AS_NUMBER(pop(vm))-1 ) );
                 break;
             }
+            case OP_MODULE: {
+                ObjString* fileName = READ_STRING();
+                Value moduleVal;
 
+                char path[PATHLEN];
+                if (!validPath(frame->closure->function->module->path->chars,
+                            fileName->chars, path)) {
+                    runtimeError(vm, "Could not open file '%s'.", fileName->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                ObjString* pathObj = copyString(vm, path, strlen(path));
+                push(vm, OBJ_VAL(pathObj));
+
+                // skipping if file already imported
+                if (tableGet(&vm->modules, pathObj, &moduleVal)) {
+                    pop(vm);
+                    vm->lastModule = AS_MODULE(moduleVal);
+                    push(vm, NULL_VAL);
+                    break;
+                }
+
+                char* source = readFile_VM(vm, path);
+
+                if (source == NULL) {
+                    runtimeError(vm, "Could not open file '%s'.", fileName->chars);
+                }
+
+                ObjModule* module = newModule(vm, pathObj);
+                module->path = dirName(vm, path, strlen(path));
+                vm->lastModule = module;
+
+                pop(vm);
+                push(vm, OBJ_VAL(module));
+                ObjFunction* function = compile(vm, module, source);
+                pop(vm);
+                
+                FREE_ARRAY(vm, char, source, strlen(source)+1);
+
+                if (function == NULL) return INTERPRET_COMPILE_ERROR;
+                push(vm, OBJ_VAL(function));
+                ObjClosure* closure = newClosure(vm, function);
+                pop(vm);
+                push(vm, OBJ_VAL(closure));
+
+//                frame->ip = ip;
+                call(vm, closure, 0);
+                frame = &vm->frames[vm->frameCount - 1];
+//                ip = frame->ip;
+                break;
+            }
+            case OP_MODULE_VAR: {
+                push(vm, OBJ_VAL(vm->lastModule));
+                break;
+            }
+            case OP_MODULE_END: {
+                vm->lastModule = frame->closure->function->module;
+                break;
+            }
             case OP_NOT:
                 push(vm, BOOL_VAL(isFalsey(pop(vm))));
                 break;
@@ -857,8 +854,17 @@ static InterpretResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-InterpretResult interpret(VM* vm, const char* source) {
-    ObjFunction* function = compile(vm, source);
+InterpretResult interpret(VM* vm, char* moduleName, const char* source) {
+    ObjString* name = copyString(vm, moduleName, strlen(moduleName));
+    push(vm, OBJ_VAL(name));
+    ObjModule* module = newModule(vm, name);
+    pop(vm);
+
+    push(vm, OBJ_VAL(module));
+    module->path = getDirectory(vm, moduleName);
+    pop(vm);
+
+    ObjFunction* function = compile(vm, module, source);
     if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
     push(vm, OBJ_VAL(function));
@@ -867,5 +873,6 @@ InterpretResult interpret(VM* vm, const char* source) {
     push(vm, OBJ_VAL(closure));
     call(vm, closure, 0);
 
-    return run(vm);
+    InterpretResult result = run(vm);
+    return result;
 }

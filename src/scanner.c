@@ -203,7 +203,14 @@ static Tokentype checkKeyword(int start, int length,
 static Tokentype identifierType() {
 
     switch (scanner.start[0]) {
-        case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
+        case 'a':
+            if (scanner.current-scanner.start > 1) {
+                switch (scanner.start[1]) {
+                    case 's': return checkKeyword(2,0, "", TOKEN_AS);
+                    case 'n': return checkKeyword(2,1, "d", TOKEN_AND);
+                }
+            }
+            break;
         case 'b': return checkKeyword(1, 4, "reak", TOKEN_BREAK);
         case 'c':
             if (scanner.current-scanner.start > 1) {
@@ -239,15 +246,17 @@ static Tokentype identifierType() {
               }
             }
             break;
-        case 'i':
+        /* case 'i':
             if (scanner.current-scanner.start > 1) {
               switch (scanner.start[1]) {
                   case 'f': return checkKeyword(2,0, "", TOKEN_IF);
-                  case 'm': return checkKeyword(2,4, "port", TOKEN_IMPORT);
+                  case 'm': return checkKeyword(2,4, "port", TOKEN_MODULE);
               }
             }
-            break;
-        case 'l': return checkKeyword(1, 2, "et", TOKEN_LET);
+            break; */
+        case 'i': return checkKeyword(1, 1, "f", TOKEN_IF);
+        case 'l': return checkKeyword(1, 4, "ocal", TOKEN_LOCAL);
+        case 'm': return checkKeyword(1, 5, "odule", TOKEN_MODULE);
         case 'n': return checkKeyword(1, 3, "ull", TOKEN_NULL);
         case 'o': return checkKeyword(1, 1, "r", TOKEN_OR);
         case 'r': return checkKeyword(1, 5, "eturn", TOKEN_RETURN);

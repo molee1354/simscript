@@ -9,3 +9,5 @@ simscript
 !bin/simscript
 .util
 *.out
+*.ss
+!tests/*.ss

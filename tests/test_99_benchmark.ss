@@ -16,9 +16,9 @@ class Zoo {
 }
 
 function test(iter) {
-    let zoo = Zoo();
-    let sum = 0;
-    let start = clock();
+    local var sum = 0;
+    local var zoo = Zoo();
+    local var start = clock();
     while (sum < 100000000) {
         sum = sum + zoo.ant()
             + zoo.banana()
@@ -27,14 +27,14 @@ function test(iter) {
             + zoo.grass()
             + zoo.mouse();
     }
-    let elapsed_time = clock() - start;
+    local var elapsed_time = clock() - start;
     echo "..." + iter + " : " + elapsed_time;
     return elapsed_time;
 }
 
-const let iterations = 5;
-let sum = 0;
-let average;
+const iterations = 5;
+var sum = 0;
+var average;
 for (var i=0; i < iterations; i = 1 + i) {
     sum = sum + test(i);
 }

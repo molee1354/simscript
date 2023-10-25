@@ -83,6 +83,13 @@ static void blackenObject(VM* vm, Obj* object) {
     printf("\n");
 #endif
     switch (object->type) {
+        case OBJ_MODULE: {
+            ObjModule* module = (ObjModule*) object;
+            markObject(vm, (Obj*)module->name);
+            markObject(vm, (Obj*)module->path);
+            markTable(vm, &module->values);
+            break;
+        }
         case OBJ_BOUND_METHOD: {
             ObjBoundMethod* bound = (ObjBoundMethod*)object;
             markValue(vm, bound->receiver);
@@ -135,9 +142,16 @@ static void freeObject(VM* vm, Obj* object) {
     printf("%p free type %d\n", (void*)object, object->type);
 #endif
     switch (object->type) {
-        case OBJ_BOUND_METHOD: 
+        case OBJ_MODULE: {
+            ObjModule* module = (ObjModule*)object;
+            freeTable(vm, &module->values);
+            FREE(vm, ObjModule, object);
+            break;
+        }
+        case OBJ_BOUND_METHOD: {
             FREE(vm, ObjBoundMethod, object);
             break;
+        }
         case OBJ_CLASS: {
             ObjClass* klass = (ObjClass*)object;
             freeTable(vm, &klass->methods);

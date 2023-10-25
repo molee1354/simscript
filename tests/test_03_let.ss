@@ -1,5 +1,5 @@
 function main() {
-    let one = 1;
+    local var one = 1;
     function inner() {
         // this access can't happen
         one++;

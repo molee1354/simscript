@@ -37,6 +37,9 @@ struct _vm {
     ObjString* initString;
     ObjUpvalue* openUpvalues; // upvalue array
 
+    ObjModule* lastModule;    // modules
+    Table modules;            // 
+
     size_t bytesAllocated;
     size_t nextGC;
     Obj* objects;             // vm stores the head of the objects list
@@ -44,6 +47,9 @@ struct _vm {
     int grayCapacity;
     Obj** grayStack;
 };
+
+// Runtime error function declaration
+void runtimeError(VM* vm, const char* format, ...);
 
 /**
  * @brief Pushing a value into the vm stack
