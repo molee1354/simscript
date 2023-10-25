@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "object.h"
 #include "scanner.h"
+#include "table.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -15,15 +16,6 @@
 #endif
 
 #define REPL (parser->vm->repl)
-
-
-// Parser parser;
-
-// global compilers bad for multithreading
-// Compiler* current = NULL;
-
-// Compiler for class scope
-// ClassCompiler* currentClass = NULL;
 
 /**
  * @brief Method to return the current chunk in compilation
@@ -43,20 +35,31 @@ static Chunk* currentChunk(Compiler* compiler) {
 static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
-    if (REPL) {
-        fprintf(stderr, "COMPILER ERROR:\n[REPL] Error");
-    } else {
-        fprintf(stderr, "COMPILER ERROR:\n[line %d] Error", token->line);
-    }
+    fprintf(stderr, "COMPILER ERROR:\n");
+    fprintf(stderr, "  %s\n", message);
+    fprintf(stderr, "  @ '%s', line %d\n",
+                parser->module->name->chars, token->line);
 
     if (token->type==TOKEN_EOF) {
-        fprintf(stderr, " at end");
+        fprintf(stderr, "  at end\n");
+        // fprintf(stderr, " : %s\n", message);
     } else if (token->type == TOKEN_ERROR) {
         // pass
     } else {
-        fprintf(stderr, " at '%.*s'", token->length, token->start);
+        fprintf(stderr, "  %.*s _ %.*s\n",
+                parser->previous.length,
+                parser->previous.start,
+                parser->current.length,
+                parser->current.start
+//                token->length,
+//                token->start
+                );
+        // fprintf(stderr, " : %s\n", message);
+        for (int i=0; i < parser->previous.length+3; i++) {
+            fprintf(stderr, " ");
+        }
+        fprintf(stderr, "%s\n", "^");
     }
-    fprintf(stderr, ": %s\n", message);
     parser->hadError = true;
 }
 
@@ -242,7 +245,7 @@ static void initCompiler(Parser* parser, Compiler* compiler, Compiler* parent, F
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
-    compiler->function = newFunction(parser->vm, type);
+    compiler->function = newFunction(parser->vm, parser->module, type);
 
     // storing the function's name (if not top-level/script)
     if (type != TYPE_SCRIPT) {
@@ -367,8 +370,8 @@ static bool identifiersEqual(Token* a, Token* b) {
  * @param name The name of the token
  * @return static int The local index where the variable is found, -1 if not. 
  */
-static ResolvedLocal resolveLocal(Compiler* compiler, Token* name) {
-    ResolvedLocal out = {-1, false, false};
+static ResolvedVar resolveLocal(Compiler* compiler, Token* name) {
+    ResolvedVar out = {-1, false, false};
     for (int i = compiler->localCount -1; i>=0; i--) {
         Local* local = &compiler->locals[i];
         if (identifiersEqual(name, &local->name)) {
@@ -420,27 +423,42 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
  * @param name The name of the token.
  * @return static int The upvalue index for that variable
  */
-static int resolveUpvalue(Compiler* compiler, Token* name) {
-    if (compiler->enclosing == NULL) return -1;
+static ResolvedVar resolveUpvalue(Compiler* compiler, Token* name) {
+    ResolvedVar out = {-1, false, false};
+    // if (compiler->enclosing == NULL) return -1;
+    if (compiler->enclosing == NULL) return out;
 
     int local = resolveLocal(compiler->enclosing, name).depth;
     bool isScoped = resolveLocal(compiler->enclosing, name).isScoped;
-    if (isScoped) return -1;
+    bool isConst = resolveLocal(compiler->enclosing, name).isConst;
+
+    // if (isScoped) return -1;
+    if (isScoped) return out;
+
     if (local != -1) { // if local var is found
         // for resolving an identifier, mark it as "captured"
         compiler->enclosing->locals[local].isCaptured = true;
-        return addUpvalue(compiler, (uint8_t)local, true);
+        // return addUpvalue(compiler, (uint8_t)local, true);
+        out.depth = addUpvalue(compiler, (uint8_t)local, true);
+        out.isConst = isConst;
+        out.isScoped = isScoped; // should be false
+        return out;
     }
 
     /* recursive use of resolveUpvalue to capture from its immediately
      * surrounding function (arg to addUpvalue is false). 
      * This is for "not top-level" 
      */
-    int upvalue = resolveUpvalue(compiler->enclosing, name);
+    int upvalue = resolveUpvalue(compiler->enclosing, name).depth;
     if (upvalue != -1) {
-        return addUpvalue(compiler, (uint8_t)upvalue, false);
+        // return addUpvalue(compiler, (uint8_t)upvalue, false);
+        out.depth = addUpvalue(compiler, (uint8_t)upvalue, false);
+        out.isConst = isConst;
+        out.isScoped = isScoped; // should be false
+        return out;
     }
-    return -1;
+    // return -1;
+    return out;
 }
 
 /**
@@ -635,7 +653,7 @@ static void string(Compiler* compiler, bool canAssign __attribute__((unused))) {
  */
 static void namedVariable(Compiler* compiler, Token name, bool canAssign) {
     uint8_t getOp, setOp;
-    ResolvedLocal resLoc = resolveLocal(compiler, &name);
+    ResolvedVar resLoc = resolveLocal(compiler, &name);
     int arg = resLoc.depth;
     bool isConst = resLoc.isConst;
     bool isScoped = resLoc.isScoped;
@@ -643,13 +661,24 @@ static void namedVariable(Compiler* compiler, Token name, bool canAssign) {
     if (arg != -1) { // -1 for global state
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
-    } else if ( !isScoped && (arg = resolveUpvalue(compiler, &name)) != -1) {
+    } else if ( !isScoped &&
+                (arg = resolveUpvalue(compiler, &name).depth) != -1) {
+        isConst = resolveUpvalue(compiler, &name).isConst;
         getOp = OP_GET_UPVALUE;
         setOp = OP_SET_UPVALUE;
     } else {
         arg = identifierConstant(compiler, &name);
-        getOp = OP_GET_GLOBAL;
-        setOp = OP_SET_GLOBAL;
+        /* getOp = OP_GET_GLOBAL;
+        setOp = OP_SET_GLOBAL; */
+        ObjString* string = copyString(compiler->parser->vm, name.start, name.length);
+        Value value;
+        if (tableGet(&compiler->parser->vm->globals, string, &value)) {
+            getOp = OP_GET_GLOBAL;
+            canAssign = false;
+        } else {
+            getOp = OP_GET_MODULE;
+            setOp = OP_SET_MODULE;
+        }
     }
 
     if (canAssign && match(compiler, TOKEN_EQUAL)) {
@@ -863,7 +892,7 @@ ParseRule rules[] = {
     [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
     [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_LET]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LOCAL]           = {NULL,     NULL,   PREC_NONE},
     [TOKEN_CONST]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
@@ -954,12 +983,19 @@ static void markInitialized(Compiler* compiler) {
  * @param global Variable index
  */
 static void defineVariable(Compiler* compiler, uint8_t global) {
+    if (compiler->scopeDepth == 0) {
+        emitBytes(compiler, OP_DEFINE_MODULE, global);
+    } else {
+        // Mark the local as defined now.
+        compiler->locals[compiler->localCount - 1].depth = compiler->scopeDepth;
+    }
+
     // don't define var if in local scope
-    if (compiler->scopeDepth > 0) {
+    /* if (compiler->scopeDepth > 0) {
         markInitialized(compiler);
         return;
     }
-    emitBytes(compiler, OP_DEFINE_GLOBAL, global);
+    emitBytes(compiler, OP_DEFINE_GLOBAL, global); */
 }
 
 /**
@@ -1132,11 +1168,12 @@ static void funDeclaration(Compiler* compiler) {
     defineVariable(compiler, global);
 }
 
+// compiler, "message", isConst, isScoped
 /**
  * @brief A method to handle variable declarations.
  */
-static void varDeclaration(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", false, false);
+static void varDeclaration(Compiler* compiler, bool isScoped) {
+    uint8_t global = parseVariable(compiler, "Expect variable name.", false, isScoped);
 
     if (match(compiler, TOKEN_EQUAL)) {
         expression(compiler);
@@ -1148,34 +1185,8 @@ static void varDeclaration(Compiler* compiler) {
     defineVariable(compiler, global);
 }
 
-static void constVarDec(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", true, false);
-
-    if (!match(compiler, TOKEN_EQUAL)) {
-        error(compiler->parser, "Constant declarations must be followed by a value assignment.");
-    } else {
-        expression(compiler);
-    }
-    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after constant declaration");
-
-    defineVariable(compiler, global);
-}
-
-static void letDeclaration(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", false, true);
-
-    if (match(compiler, TOKEN_EQUAL)) {
-        expression(compiler);
-    } else {
-        emitByte(compiler, OP_NULL);
-    }
-    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after constant declaration");
-
-    defineVariable(compiler, global);
-}
-
-static void constLetDec(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", true, true);
+static void constDeclaration(Compiler* compiler, bool isScoped) {
+    uint8_t global = parseVariable(compiler, "Expect variable name.", true, isScoped);
 
     if (!match(compiler, TOKEN_EQUAL)) {
         error(compiler->parser, "Constant declarations must be followed by a value assignment.");
@@ -1227,18 +1238,24 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_BREAK:
         case OP_INCREMENT:
         case OP_DECREMENT:
+        case OP_MODULE_VAR:
+        case OP_MODULE_END:
             return 0;
 
         case OP_CONSTANT:
         case OP_GET_LOCAL:
         case OP_SET_LOCAL:
         case OP_GET_GLOBAL:
+        case OP_GET_MODULE:
+        case OP_SET_MODULE:
+        case OP_DEFINE_MODULE:
         case OP_GET_UPVALUE:
         case OP_SET_UPVALUE:
         case OP_GET_PROPERTY:
         case OP_SET_PROPERTY:
         case OP_GET_SUPER:
         case OP_METHOD:
+        case OP_MODULE:
             return 1;
 
         case OP_JUMP:
@@ -1298,7 +1315,7 @@ static void forStatement(Compiler* compiler) {
     if(match(compiler, TOKEN_SEMICOLON)) {
         // no init
     } else if (match(compiler, TOKEN_VAR)) {
-        varDeclaration(compiler);
+        varDeclaration(compiler, false);
     } else {
         expressionStatement(compiler);
     }
@@ -1418,6 +1435,38 @@ static void printStatement(Compiler* compiler) {
     emitByte(compiler, OP_PRINT);
 }
 
+static void import(Compiler* compiler) {
+    int importIndex = makeConstant(compiler,
+            OBJ_VAL(copyString(
+                    compiler->parser->vm,
+                    compiler->parser->previous.start + 1,
+                    compiler->parser->previous.length - 2
+                    )));
+    emitBytes(compiler, OP_MODULE, importIndex);
+    emitByte(compiler, OP_POP);
+}
+/**
+ * @brief Method to handle module statements
+ */
+static void moduleStatement(Compiler* compiler) {
+    if (match(compiler, TOKEN_STRING)) {
+        import(compiler);
+    } else if (check(compiler, TOKEN_IDENTIFIER)) {
+        uint8_t moduleVarName = parseVariable(compiler, "Expect import namespace", false, false);
+        consume(compiler, TOKEN_EQUAL, "Missing assignment '=' to module variable");
+        if (!match(compiler, TOKEN_STRING)) {
+            errorAtCurrent(compiler->parser, "Expect module path after '='.");
+            return;
+        }
+        // consume(compiler, TOKEN_STRING, "Expect module path after '='.");
+        import(compiler);
+        emitByte(compiler, OP_MODULE_VAR);
+        defineVariable(compiler, moduleVarName);
+    }
+    emitByte(compiler, OP_MODULE_END);
+    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after module import");
+}
+
 /**
  * @brief Method to handle return statements
  */
@@ -1480,6 +1529,7 @@ static void synchronize(Compiler* compiler) {
             case TOKEN_BREAK:
             case TOKEN_PRINT:
             case TOKEN_RETURN:
+            case TOKEN_MODULE:
                 return;
 
             default:
@@ -1499,16 +1549,16 @@ static void declaration(Compiler* compiler) {
     } else if (match(compiler, TOKEN_FUN)) {
         funDeclaration(compiler);
     } else if (match(compiler, TOKEN_VAR)) {
-        varDeclaration(compiler);
-    } else if (match(compiler, TOKEN_LET)) {
-        letDeclaration(compiler);
+        varDeclaration(compiler, false);
     } else if (match(compiler, TOKEN_CONST)) {
+        constDeclaration(compiler, false);
+    } else if (match(compiler, TOKEN_LOCAL)) {
         if (match(compiler, TOKEN_VAR)) {
-            constVarDec(compiler);
-        } else if (match(compiler, TOKEN_LET)) {
-            constLetDec(compiler);
+            varDeclaration(compiler, true);
+        } else if (match(compiler, TOKEN_CONST)) {
+            constDeclaration(compiler, true);
         } else {
-            error(compiler->parser,"Expected variable declaration after 'const'.");
+            error(compiler->parser,"Expected variable declaration after 'local'.");
         }
     } else {
         statement(compiler);
@@ -1525,6 +1575,8 @@ static void declaration(Compiler* compiler) {
 static void statement(Compiler* compiler) {
     if (match(compiler, TOKEN_PRINT)) {
         printStatement(compiler);
+    } else if (match(compiler, TOKEN_MODULE)) {
+        moduleStatement(compiler);
     } else if (match(compiler, TOKEN_FOR)) {
         forStatement(compiler);
     } else if (match(compiler, TOKEN_IF)) {
@@ -1546,11 +1598,12 @@ static void statement(Compiler* compiler) {
     }
 }
 
-ObjFunction* compile(VM* vm, const char *source) {
+ObjFunction* compile(VM* vm, ObjModule* module, const char *source) {
     Parser parser;
     parser.vm = vm;
     parser.hadError = false;
     parser.panicMode = false;
+    parser.module = module;
     initScanner(source);
 
     Compiler compiler;

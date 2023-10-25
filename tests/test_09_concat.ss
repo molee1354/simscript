@@ -1,7 +1,7 @@
 function main() {
-    const let first = "Kh";
-    const var second = "an";
-    let number = 3;
+    local const first = "Kh";
+    local const second = "an";
+    local var number = 3;
 
     var name = first + second + number;
 

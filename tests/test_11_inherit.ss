@@ -19,7 +19,7 @@ class Dog extends Animal {
 }
 
 function main() {
-    const var myDog = Dog("Khan");
+    local const myDog = Dog("Khan");
     myDog.bark();
 }
 

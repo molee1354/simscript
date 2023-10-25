@@ -116,6 +116,12 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
         case OP_SET_GLOBAL:
             return constantInstruction("OP_SET_GLOBAL", chunk, offset);
+        case OP_GET_MODULE:
+            return constantInstruction("OP_GET_MODULE", chunk, offset);
+        case OP_DEFINE_MODULE:
+            return constantInstruction("OP_DEFINE_MODULE", chunk, offset);
+        case OP_SET_MODULE:
+            return constantInstruction("OP_SET_MODULE", chunk, offset);
         case OP_GET_UPVALUE:
             return byteInstruction("OP_GET_UPVALUE", chunk, offset);
         case OP_SET_UPVALUE:
@@ -149,6 +155,13 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_INCREMENT", offset);
         case OP_DECREMENT:
             return simpleInstruction("OP_DECREMENT", offset);
+
+        case OP_MODULE:
+            return simpleInstruction("OP_MODULE", offset);
+        case OP_MODULE_END:
+            return simpleInstruction("OP_MODULE_END", offset);
+        case OP_MODULE_VAR:
+            return simpleInstruction("OP_MODULE_VAR", offset);
 
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);

@@ -35,6 +35,30 @@ static Obj* allocateObject(VM* vm, size_t size, ObjType type) {
     return object;
 }
 
+ObjModule* newModule(VM* vm, ObjString* name) {
+    Value moduleVal;
+    if (tableGet(&vm->modules, name, &moduleVal)) {
+        return AS_MODULE(moduleVal);
+    }
+
+    ObjModule* module = ALLOCATE_OBJ(vm, ObjModule, OBJ_MODULE);
+    initTable(&module->values);
+    module->name = name;
+    module->path = NULL;
+
+    push(vm, OBJ_VAL(module));
+    ObjString* __file__ = copyString(vm, "__file__", 8);
+    push(vm, OBJ_VAL(__file__));
+
+    tableSet(vm, &module->values, __file__, OBJ_VAL(name));
+    tableSet(vm, &vm->modules, name, OBJ_VAL(module));
+
+    pop(vm);
+    pop(vm);
+
+    return module;
+}
+
 ObjBoundMethod* newBoundMethod(VM* vm, Value receiver, ObjClosure* method) {
     ObjBoundMethod* bound = ALLOCATE_OBJ(vm, ObjBoundMethod, OBJ_BOUND_METHOD);
     bound->receiver = receiver;
@@ -62,12 +86,13 @@ ObjClosure* newClosure(VM* vm, ObjFunction* function) {
     return closure;
 }
 
-ObjFunction* newFunction(VM* vm, FunctionType type) {
+ObjFunction* newFunction(VM* vm, ObjModule* module, FunctionType type) {
     ObjFunction* function = ALLOCATE_OBJ(vm, ObjFunction, OBJ_FUNCTION);
     function->params = 0;
     function->upvalueCount = 0;
     function->name = NULL;
     function->type = type;
+    function->module = module;
     initChunk(vm, &function->chunk);
     return function;
 }
@@ -171,6 +196,9 @@ static void printFunction(ObjFunction* function) {
 
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_MODULE:
+            printf("%s", AS_MODULE(value)->name->chars);
+            break;
         case OBJ_BOUND_METHOD:
             printFunction(AS_BOUND_METHOD(value)->method->function);
             break;

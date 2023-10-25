@@ -15,6 +15,6 @@ VM* initVM(bool repl);
 
 void freeVM(VM* vm);
 
-InterpretResult interpret(VM* vm, const char* source);
+InterpretResult interpret(VM* vm, char* moduleName, const char* source);
 
 #endif

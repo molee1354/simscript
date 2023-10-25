@@ -8,8 +8,8 @@
 #include "read.h"
 #include "vm.h"
 
-#define VERSION "0.0.5"
-#define TIME    "Oct 24 2023, 01:15"
+#define VERSION "0.0.6"
+#define TIME    "Oct 26 2023, 01:20"
 
 #ifdef _WIN32
 #define PLATFORM "Windows"
@@ -32,20 +32,21 @@ static void repl(VM* vm) {
             exit(0);
         }
 
-        interpret(vm, line);
+        interpret(vm, "repl", line);
     }
 }
 
-static void runFile(VM* vm, const char* path) {
+static void runFile(VM* vm, char* path) {
     char* source = readFile(path);
-    InterpretResult result = interpret(vm, source);
+    // char* source = readFile_VM(vm, path);
+    InterpretResult result = interpret(vm, path, source);
     free(source);
 
     if (result==INTERPRET_COMPILE_ERROR) exit(65);
     if (result==INTERPRET_RUNTIME_ERROR) exit(70);
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
     // init vm
     VM* vm = initVM(false);
 
