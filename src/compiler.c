@@ -49,8 +49,10 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
         fprintf(stderr, "  %.*s _ %.*s\n",
                 parser->previous.length,
                 parser->previous.start,
-                token->length,
-                token->start
+                parser->current.length,
+                parser->current.start
+//                token->length,
+//                token->start
                 );
         // fprintf(stderr, " : %s\n", message);
         for (int i=0; i < parser->previous.length+3; i++) {
@@ -1477,7 +1479,11 @@ static void moduleStatement(Compiler* compiler) {
     } else if (check(compiler, TOKEN_IDENTIFIER)) {
         uint8_t moduleVarName = parseVariable(compiler, "Expect import namespace", false, false);
         consume(compiler, TOKEN_EQUAL, "Missing assignment '=' to module variable");
-        consume(compiler, TOKEN_STRING, "Expect module path after '='.");
+        if (!match(compiler, TOKEN_STRING)) {
+            errorAtCurrent(compiler->parser, "Expect module path after '='.");
+            return;
+        }
+        // consume(compiler, TOKEN_STRING, "Expect module path after '='.");
         import(compiler);
         emitByte(compiler, OP_MODULE_VAR);
         defineVariable(compiler, moduleVarName);
