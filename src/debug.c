@@ -156,12 +156,12 @@ int disassembleInstruction(Chunk *chunk, int offset) {
         case OP_DECREMENT:
             return simpleInstruction("OP_DECREMENT", offset);
 
-        case OP_IMPORT:
-            return simpleInstruction("OP_IMPORT", offset);
-        case OP_IMPORT_END:
-            return simpleInstruction("OP_IMPORT_END", offset);
-        case OP_IMPORT_VAR:
-            return simpleInstruction("OP_IMPORT_VAR", offset);
+        case OP_MODULE:
+            return simpleInstruction("OP_MODULE", offset);
+        case OP_MODULE_END:
+            return simpleInstruction("OP_MODULE_END", offset);
+        case OP_MODULE_VAR:
+            return simpleInstruction("OP_MODULE_VAR", offset);
 
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);

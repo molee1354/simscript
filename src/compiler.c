@@ -1458,10 +1458,10 @@ static void moduleStatement(Compiler* compiler) {
     if (match(compiler, TOKEN_STRING)) {
         import(compiler);
     } else if (check(compiler, TOKEN_IDENTIFIER)) {
-        import(compiler);
         uint8_t moduleVarName = parseVariable(compiler, "Expect import namespace", false, false);
         consume(compiler, TOKEN_EQUAL, "Missing assignment '=' to module variable");
         consume(compiler, TOKEN_STRING, "Expect module path after '='.");
+        import(compiler);
         emitByte(compiler, OP_MODULE_VAR);
         defineVariable(compiler, moduleVarName);
     }
