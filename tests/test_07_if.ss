@@ -1,7 +1,7 @@
 function check() {
-    const var one = 1;
-    const var zero = 0;
-    const var str = "Khan";
+    const one = 1;
+    const zero = 0;
+    const str = "Khan";
 
     if ( one > zero ) {
         return 0;

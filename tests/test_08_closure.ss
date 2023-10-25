@@ -1,6 +1,5 @@
 function outer() {
     var x = 0;
-
     function middle() {
         function inner() {
             x++;

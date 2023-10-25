@@ -3,10 +3,10 @@ module mod2 = "test_11_inherit.ss";
 
 function main() {
     echo "from main";
-    var coffee = mod1.Coffee("Latte");
+    local var coffee = mod1.Coffee("Latte");
     coffee.brew();
 
-    var myPet = mod2.Dog("Marley");
+    local var myPet = mod2.Dog("Marley");
     myPet.bark();
 }
 

@@ -1168,11 +1168,12 @@ static void funDeclaration(Compiler* compiler) {
     defineVariable(compiler, global);
 }
 
+// compiler, "message", isConst, isScoped
 /**
  * @brief A method to handle variable declarations.
  */
-static void varDeclaration(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", false, false);
+static void varDeclaration(Compiler* compiler, bool isScoped) {
+    uint8_t global = parseVariable(compiler, "Expect variable name.", false, isScoped);
 
     if (match(compiler, TOKEN_EQUAL)) {
         expression(compiler);
@@ -1184,34 +1185,8 @@ static void varDeclaration(Compiler* compiler) {
     defineVariable(compiler, global);
 }
 
-static void constVarDec(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", true, false);
-
-    if (!match(compiler, TOKEN_EQUAL)) {
-        error(compiler->parser, "Constant declarations must be followed by a value assignment.");
-    } else {
-        expression(compiler);
-    }
-    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after constant declaration");
-
-    defineVariable(compiler, global);
-}
-
-static void letDeclaration(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", false, true);
-
-    if (match(compiler, TOKEN_EQUAL)) {
-        expression(compiler);
-    } else {
-        emitByte(compiler, OP_NULL);
-    }
-    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after constant declaration");
-
-    defineVariable(compiler, global);
-}
-
-static void constLetDec(Compiler* compiler) {
-    uint8_t global = parseVariable(compiler, "Expect variable name.", true, true);
+static void constDeclaration(Compiler* compiler, bool isScoped) {
+    uint8_t global = parseVariable(compiler, "Expect variable name.", true, isScoped);
 
     if (!match(compiler, TOKEN_EQUAL)) {
         error(compiler->parser, "Constant declarations must be followed by a value assignment.");
@@ -1340,7 +1315,7 @@ static void forStatement(Compiler* compiler) {
     if(match(compiler, TOKEN_SEMICOLON)) {
         // no init
     } else if (match(compiler, TOKEN_VAR)) {
-        varDeclaration(compiler);
+        varDeclaration(compiler, false);
     } else {
         expressionStatement(compiler);
     }
@@ -1574,16 +1549,16 @@ static void declaration(Compiler* compiler) {
     } else if (match(compiler, TOKEN_FUN)) {
         funDeclaration(compiler);
     } else if (match(compiler, TOKEN_VAR)) {
-        varDeclaration(compiler);
-    } else if (match(compiler, TOKEN_LET)) {
-        letDeclaration(compiler);
+        varDeclaration(compiler, false);
     } else if (match(compiler, TOKEN_CONST)) {
+        constDeclaration(compiler, false);
+    } else if (match(compiler, TOKEN_LET)) {
         if (match(compiler, TOKEN_VAR)) {
-            constVarDec(compiler);
-        } else if (match(compiler, TOKEN_LET)) {
-            constLetDec(compiler);
+            varDeclaration(compiler, true);
+        } else if (match(compiler, TOKEN_CONST)) {
+            constDeclaration(compiler, true);
         } else {
-            error(compiler->parser,"Expected variable declaration after 'const'.");
+            error(compiler->parser,"Expected variable declaration after 'local'.");
         }
     } else {
         statement(compiler);

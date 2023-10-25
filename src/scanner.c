@@ -255,7 +255,7 @@ static Tokentype identifierType() {
             }
             break; */
         case 'i': return checkKeyword(1, 1, "f", TOKEN_IF);
-        case 'l': return checkKeyword(1, 2, "et", TOKEN_LET);
+        case 'l': return checkKeyword(1, 4, "ocal", TOKEN_LET);
         case 'm': return checkKeyword(1, 5, "odule", TOKEN_MODULE);
         case 'n': return checkKeyword(1, 3, "ull", TOKEN_NULL);
         case 'o': return checkKeyword(1, 1, "r", TOKEN_OR);
