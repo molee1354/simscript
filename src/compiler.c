@@ -16,6 +16,7 @@
 #endif
 
 #define REPL (parser->vm->repl)
+#define UNUSED(x) (void)(x)
 
 /**
  * @brief Method to return the current chunk in compilation
@@ -484,7 +485,8 @@ static void addLocal(Compiler* compiler, Token name, bool isConst, bool isScoped
  * @brief Method to handle binary operations
  *
  */
-static void binary(Compiler* compiler, bool canAssign __attribute__((unused)) ) {
+static void binary(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     Tokentype operatorType = compiler->parser->previous.type;
     ParseRule* rule = getRule(operatorType);
     parsePrecedence(compiler, (Precedence)(rule->precedence + 1) );
@@ -515,7 +517,8 @@ static void binary(Compiler* compiler, bool canAssign __attribute__((unused)) ) 
  *
  * @param canAssign True if assignable
  */
-static void call(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void call(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     uint8_t argCount = argumentList(compiler);
     emitBytes(compiler, OP_CALL, argCount);
 }
@@ -577,7 +580,8 @@ static void dot(Compiler* compiler, bool canAssign) {
  *
  * @param canAssign True if assignable
  */
-static void literal(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void literal(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     switch (compiler->parser->previous.type) {
         case TOKEN_FALSE:  emitByte(compiler, OP_FALSE); break;
         case TOKEN_NULL:   emitByte(compiler, OP_NULL); break;
@@ -593,7 +597,8 @@ static void literal(Compiler* compiler, bool canAssign __attribute__((unused))) 
  * expression() to handle expressions within the parenthesis
  *
  */
-static void grouping(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void grouping(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     expression(compiler); // takes care of generating bytecode inside the parenthesis
     consume(compiler, TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
@@ -602,7 +607,8 @@ static void grouping(Compiler* compiler, bool canAssign __attribute__((unused)))
  * @brief Method to convert a parsed string to a number
  *
  */
-static void number(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void number(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     double value = strtod(compiler->parser->previous.start, NULL);
     emitConstant(compiler, NUMBER_VAL(value));
 }
@@ -612,7 +618,8 @@ static void number(Compiler* compiler, bool canAssign __attribute__((unused))) {
  *
  * @param canAssign Variable to check if the value can be assigned
  */
-static void and_(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void and_(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     int endJump = emitJump(compiler, OP_JUMP_IF_FALSE);
 
     emitByte(compiler, OP_POP);
@@ -625,7 +632,8 @@ static void and_(Compiler* compiler, bool canAssign __attribute__((unused))) {
  *
  * @param canAssign Variable to check if the value can be assigned
  */
-static void or_(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void or_(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     int elseJump = emitJump(compiler, OP_JUMP_IF_FALSE);
     int endJump = emitJump(compiler, OP_JUMP);
 
@@ -640,7 +648,8 @@ static void or_(Compiler* compiler, bool canAssign __attribute__((unused))) {
  * @brief Method to convert a parsed string into string value
  *
  */
-static void string(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void string(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     emitConstant( compiler, OBJ_VAL(copyString(compiler->parser->vm,
                                                compiler->parser->previous.start + 1,
                                                compiler->parser->previous.length -2)) );
@@ -760,7 +769,8 @@ static Token syntheticToken(const char* text) {
     return token;
 }
 
-static void super_(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void super_(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     ClassCompiler* currentClass = compiler->klass;
     // limiting the use of super
     if (currentClass == NULL) {
@@ -793,7 +803,8 @@ static void super_(Compiler* compiler, bool canAssign __attribute__((unused))) {
  *
  * @param canAssign 
  */
-static void this_(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void this_(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     if (compiler->klass == NULL) {
         error(compiler->parser, "Using 'this' out of a classdef context.");
         return;
@@ -805,7 +816,8 @@ static void this_(Compiler* compiler, bool canAssign __attribute__((unused))) {
  * @brief Method to deal with the unary minus
  *
  */
-static void unary(Compiler* compiler, bool canAssign __attribute__((unused))) {
+static void unary(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
     Tokentype operatorType = compiler->parser->previous.type;
 
     // compiling the operand
@@ -825,8 +837,8 @@ static void unary(Compiler* compiler, bool canAssign __attribute__((unused))) {
  * @param compiler 
  * @param canAssign 
  */
-static void increment(Compiler* compiler __attribute__((unused)),
-                          bool canAssign __attribute__((unused))) {
+static void increment(Compiler* compiler,bool canAssign) {
+    UNUSED(canAssign);
     emitByte(compiler, OP_INCREMENT);
 }
 
@@ -836,8 +848,8 @@ static void increment(Compiler* compiler __attribute__((unused)),
  * @param compiler 
  * @param canAssign 
  */
-static void decrement(Compiler* compiler __attribute__((unused)),
-                          bool canAssign __attribute__((unused))) {
+static void decrement(Compiler* compiler,bool canAssign) {
+    UNUSED(canAssign);
     emitByte(compiler, OP_DECREMENT);
 }
 
@@ -1109,7 +1121,8 @@ static void setupClassCompiler(Compiler* compiler, ClassCompiler* classCompiler)
     compiler->klass = classCompiler;
 }
 
-static void endClassCompiler(Compiler* compiler, ClassCompiler* classCompiler __attribute__((unused))) {
+static void endClassCompiler(Compiler* compiler, ClassCompiler* classCompiler) {
+    UNUSED(classCompiler);
     compiler->klass = compiler->klass->enclosing;
 }
 /**
