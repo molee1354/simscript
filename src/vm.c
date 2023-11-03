@@ -44,7 +44,7 @@ void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
 #ifdef _WIN32
-    fprintf(stderr, "\033RUNTIME ERROR:\n");
+    fprintf(stderr, "RUNTIME ERROR:\n");
 #else
     fprintf(stderr, "\033[0;31mRUNTIME ERROR:\033[0m\n");
 #endif
