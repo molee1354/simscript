@@ -32,10 +32,12 @@ struct _vm {
 
     Value stack[STACK_MAX];
     Value* stackTop;
-    Table globals;            // hash table to hold global variables
-    Table strings;            // every string that's created
     ObjString* initString;
     ObjUpvalue* openUpvalues; // upvalue array
+
+    Table globals;            // hash table to hold global variables
+    Table strings;            // every string that's created
+    Table listMethods;        // list methods
 
     ObjModule* lastModule;    // modules
     Table modules;            // 

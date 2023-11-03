@@ -25,10 +25,12 @@ typedef uint64_t Value;
 #define SIGN_BIT            ( (uint64_t)0x8000000000000000 )
 #define QNAN                ( (uint64_t)0x7ffc000000000000 )
 
+#define TAG_OKAY  0
 #define TAG_NULL  1
 #define TAG_FALSE 2
 #define TAG_TRUE  3
 
+#define IS_OKAY(value)      ( (value) == OKAY_VAL )
 #define IS_BOOL(value)      ( ((value) | 1) == TRUE_VAL)
 #define IS_NULL(value)      ( (value) == NULL_VAL )
 #define IS_NUMBER(value)    ( ((value) & QNAN) != QNAN )
@@ -41,6 +43,7 @@ typedef uint64_t Value;
     ( (Obj*)(uintptr_t)((value) & ~(SIGN_BIT | QNAN)) )
 
 #define BOOL_VAL(b)         ( (b) ? TRUE_VAL : FALSE_VAL )
+#define OKAY_VAL            ( (Value)(uint64_t)(QNAN | TAG_OKAY) )
 #define TRUE_VAL            ( (Value)(uint64_t)(QNAN | TAG_TRUE) )
 #define FALSE_VAL           ( (Value)(uint64_t)(QNAN | TAG_FALSE) )
 #define NULL_VAL            ( (Value)(uint64_t)(QNAN | TAG_NULL) )
@@ -144,7 +147,7 @@ void initValueArray(ValueArray* array);
  *
  */
 void writeValueArray(VM* vm, ValueArray* array, Value value);
-    
+
 /**
  * @brief Method to free the value array
  * @param array Pointer to value array

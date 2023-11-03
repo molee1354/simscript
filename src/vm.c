@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "SVM.h"
+#include "vm.h"
 #include "chunk.h"
 #include "common.h"
 #include "debug.h"
@@ -13,7 +14,8 @@
 #include "object.h"
 #include "read.h"
 #include "value.h"
-#include "vm.h"
+
+#include "list.h"
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
@@ -109,11 +111,14 @@ VM* initVM(bool repl) {
     initTable(&vm->strings);
     initTable(&vm->modules);
 
+    initTable(&vm->listMethods);
+
     vm->initString = NULL;
     vm->initString = copyString(vm, "init", 4);
 
     // defining native functions
     defineNatives(vm);
+    defineListMethods(vm);
     return vm;
 }
 
@@ -121,6 +126,7 @@ void freeVM(VM* vm) {
     freeTable(vm, &vm->globals);
     freeTable(vm, &vm->strings);
     freeTable(vm, &vm->modules);
+    freeTable(vm, &vm->listMethods);
     vm->initString = NULL;
     freeObjects(vm);
     free(vm);
@@ -150,8 +156,10 @@ static Value peek(VM* vm, int distance) {
 static bool call(VM* vm, ObjClosure* closure, int argCount) {
     // checking argument numbers
     if (argCount != closure->function->params) {
-        runtimeError(vm, "Expected %d arguments but got %d.",
-                closure->function->params, argCount);
+        runtimeError(vm, "Function %s() expected %d arguments but got %d.",
+                closure->function->name->chars,
+                closure->function->params,
+                argCount);
         return false;
     }
     if (vm->frameCount == FRAMES_MAX) {
@@ -210,6 +218,17 @@ static bool callValue(VM* vm, Value callee, int argCount) {
     return false;
 }
 
+static bool callNativeMethod(VM* vm, Value method, int argCount) {
+    NativeFn native = AS_NATIVE(method);
+    Value result = native(vm, argCount, vm->stackTop-argCount-1);
+
+    if (IS_NULL(result)) return false;
+
+    vm->stackTop -= argCount +1;
+    push(vm, result);
+    return true;
+}
+
 /**
  * @brief Function to invoke the correct method from a class.
  *
@@ -237,19 +256,33 @@ static bool invokeFromClass(VM* vm, ObjClass* klass, ObjString* name, int argCou
  */
 static bool invoke(VM* vm, ObjString* name, int argCount) {
     Value receiver = peek(vm, argCount);
-//    if (!IS_INSTANCE(receiver)) {
-//        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
-//                     name->chars);
-//        return false;
-//    }
+    if (!IS_OBJ(receiver)) {
+        runtimeError(vm, "Invalid method call '%s()' to unsupported type.",
+                     name->chars);
+        return false;
+    }
     if (isObjType(receiver, OBJ_MODULE)) {
         ObjModule* module = AS_MODULE(receiver);
         Value value;
         if (!tableGet(&module->values, name, &value)) {
-            runtimeError(vm, "Undefined module property '%s'.", name->chars);
+            runtimeError(vm, "Could not access field '%s' in module %s.",
+                         name->chars, module->name->chars);
             return false;
         }
         return callValue(vm, value, argCount);
+    } else if (isObjType(receiver, OBJ_LIST)) {
+        Value value;
+        if (tableGet(&vm->listMethods, name, &value)) {
+            if (IS_NATIVE(value))
+                return callNativeMethod(vm, value, argCount);
+            push(vm, peek(vm, 0));
+            for (int i = 2; i <= argCount+1; i++) {
+                vm->stackTop[-i] = peek(vm, i);
+            }
+            return call(vm, AS_CLOSURE(value), argCount+1);
+        }
+        runtimeError(vm, "No list method %s() found.", name->chars);
+        return false;
     } else {
         ObjInstance* instance = AS_INSTANCE(receiver);
 
