@@ -2,6 +2,13 @@ function main() {
     var nums = [0, 1, 2, 3, 4, 5];
     const letters = ["a", "b", "c", "d", "e"];
     const nulls = [null, null, null];
+    
+    const matrix = [
+        [1,2,3],
+        [4,5,6],
+        [7,8,9]
+    ];
+    echo matrix[1][1];
 
     echo nums;
     echo letters;
