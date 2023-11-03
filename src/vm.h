@@ -51,6 +51,9 @@ struct _vm {
 // Runtime error function declaration
 void runtimeError(VM* vm, const char* format, ...);
 
+// Runtime warning function declaration
+void runtimeWarning(VM* vm, const char* format, ...);
+
 /**
  * @brief Pushing a value into the vm stack
  * @param value Value to push into the stack

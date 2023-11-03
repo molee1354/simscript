@@ -59,6 +59,56 @@ ObjModule* newModule(VM* vm, ObjString* name) {
     return module;
 }
 
+ObjList* newList(VM* vm) {
+    ObjList* list = ALLOCATE_OBJ(vm, ObjList, OBJ_LIST);
+    initValueArray(&list->items);
+    return list;
+}
+
+void appendList(VM *vm, ObjList *list, Value value) {
+    writeValueArray(vm, &list->items, value);
+}
+
+bool validIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index < 0)
+        index += list->items.count; // negative indices start from back
+    if (index < list->items.count && index >= 0)
+        return true;
+    return false;
+}
+
+Value getFromIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index < 0)
+        index += list->items.count;
+    return list->items.values[index];
+}
+
+void setToIndexList(VM *vm, ObjList *list, int index, Value value) {
+    UNUSED(vm);
+    if (index<0)
+        index += list->items.count;
+    list->items.values[index] = value;
+}
+
+void deleteFromIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index<0)
+        index += list->items.count;
+    for (int i = index; i < list->items.count-1; i++) {
+        list->items.values[i] = list->items.values[i+1];
+    }
+    list->items.count--;
+}
+
+void clearList(VM* vm, ObjList* list) {
+    UNUSED(vm);
+    for (int i = 0; i<list->items.count; i++) {
+        deleteFromIndexList(vm, list, i);
+    }
+}
+
 ObjBoundMethod* newBoundMethod(VM* vm, Value receiver, ObjClosure* method) {
     ObjBoundMethod* bound = ALLOCATE_OBJ(vm, ObjBoundMethod, OBJ_BOUND_METHOD);
     bound->receiver = receiver;
@@ -199,6 +249,16 @@ void printObject(Value value) {
         case OBJ_MODULE:
             printf("%s", AS_MODULE(value)->name->chars);
             break;
+        case OBJ_LIST: {
+            ObjList* list = AS_LIST(value);
+            printf("[");
+            for (int i=0; i<list->items.count; i++) {
+                printValue(list->items.values[i]);
+                if (i != list->items.count-1) printf(", ");
+            }
+            printf("]");
+            break;
+        }
         case OBJ_BOUND_METHOD:
             printFunction(AS_BOUND_METHOD(value)->method->function);
             break;

@@ -19,8 +19,11 @@
  * @param args The arguments
  * @return Value The elapsed time since the program started running
  */
-static Value clockNative(VM* vm __attribute__((unused)), int argCount __attribute__((unused)),
-        Value* args __attribute__((unused))) {
+static Value clockNative(VM* vm, int argCount, Value* args ) {
+    UNUSED(vm);
+    UNUSED(argCount);
+    UNUSED(args);
+
     return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 

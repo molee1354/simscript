@@ -4,12 +4,15 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "SVM.h"
 #include "chunk.h"
 #include "common.h"
 #include "debug.h"
 #include "memory.h"
 #include "natives.h"
+#include "object.h"
 #include "read.h"
+#include "value.h"
 #include "vm.h"
 
 /**
@@ -38,7 +41,7 @@ static void resetStack(VM* vm) {
 void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    fprintf(stderr, "RUNTIME ERROR:\n");
+    fprintf(stderr, "\033[0;31mRUNTIME ERROR:\033[0m\n");
     vfprintf(stderr, format, args);
     va_end(args);
     fputs("\n", stderr);
@@ -56,12 +59,35 @@ void runtimeError(VM* vm, const char* format, ...) {
                 function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n\n");
+            fprintf(stderr, "script\n");
         } else{
-            fprintf(stderr, "%s()\n\n", function->name->chars);
+            fprintf(stderr, "%s()\n", function->name->chars);
         }
     }
     resetStack(vm);
+}
+
+void runtimeWarning(VM* vm, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "\033[0;33mWARNING:\033[0m ");
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+    for (int i = vm->frameCount-1; i>=0; i--) {
+        CallFrame* frame = &vm->frames[i];
+        ObjFunction* function = frame->closure->function;
+        size_t instruction = frame->ip - function->chunk.code - 1;
+
+        fprintf(stderr, "  @ '%s', line %d in ",
+                function->module->name->chars,
+                function->chunk.lines[instruction]);
+        if (function->name == NULL) {
+            fprintf(stderr, "script\n");
+        } else{
+            fprintf(stderr, "%s()\n", function->name->chars);
+        }
+    }
 }
 
 VM* initVM(bool repl) {
@@ -512,6 +538,107 @@ static InterpretResult run(VM* vm) {
                 }
                 break;
             }
+            case OP_MAKE_LIST: {
+                ObjList* list = newList(vm);
+                uint8_t numElem = READ_BYTE();
+
+                push(vm, OBJ_VAL(list));
+                for (int i = numElem; i > 0; i--) {
+                    appendList(vm, list, peek(vm, i));
+                }
+                vm->stackTop -= numElem+1;
+                push(vm, OBJ_VAL(list));
+                break;
+            }
+            case OP_SUBSCRIPT_ASSIGN: {
+                Value item = pop(vm);
+                Value possibleIndex = pop(vm);
+                Value receiver = pop(vm);
+                if (!IS_LIST(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* list = AS_LIST(receiver);
+                int index = AS_NUMBER(possibleIndex);
+
+                if (!validIndexList(vm, list, index)) {
+                    if (index > list->items.count) {
+                        // "autovivification" with nulls
+                        runtimeWarning(vm, "Index value greater than list capacity.");
+                        for (int i = list->items.count; i < index-1; i++) {
+                            appendList(vm, list, NULL_VAL);
+                        }
+                        appendList(vm, list, item);
+                    } else {
+                        runtimeError(vm, "List index out of bounds (given %d < %d)",
+                                index, -1*list->items.count);
+                        return INTERPRET_RUNTIME_ERROR;
+                    }
+                }
+                setToIndexList(vm, list, index, item);
+                push(vm, item);
+                break;
+            }
+            case OP_SUBSCRIPT_IDX: {
+                Value possibleIndex = pop(vm);
+                Value receiver = pop(vm);
+                Value value;
+
+                if (!IS_OBJ(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                int index = AS_NUMBER(possibleIndex);
+                switch (OBJ_TYPE(receiver)) {
+                    default:
+                        runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                        return INTERPRET_RUNTIME_ERROR;
+                    case OBJ_LIST: {
+                        ObjList* list = AS_LIST(receiver);
+                        if (!validIndexList(vm, list, index)) {
+                            runtimeError(vm, "List index out of bounds (given %d < %d)",
+                                    index, -1*list->items.count);
+                            return INTERPRET_RUNTIME_ERROR;
+                        }
+                        value = getFromIndexList(vm, list, index);
+                        push(vm, value);
+                        break;
+                    }
+                }
+                break;
+            }
+            case OP_SUBSCRIPT_IDX_NOPOP: {
+                Value possibleIndex = peek(vm, 0);
+                Value receiver = peek(vm, 1);
+                Value value;
+                
+                if (!IS_LIST(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                int index = AS_NUMBER(possibleIndex);
+                ObjList* list = AS_LIST(receiver);
+                if (!validIndexList(vm, list, index)) {
+                    runtimeError(vm, "List index out of bounds (given %d < %d)",
+                            index, -1*list->items.count);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                value = getFromIndexList(vm, list, index);
+                push(vm, value);
+                break;
+            }
             case OP_GET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
                 push(vm, *frame->closure->upvalues[slot]->location);
@@ -523,25 +650,6 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_GET_PROPERTY: {
-                /* if (!IS_INSTANCE(peek(vm,0))) {
-                    runtimeError(vm, "Only instances have callable properties.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                ObjInstance* instance = AS_INSTANCE(peek(vm,0));
-                ObjString* name = READ_STRING();
-
-                Value value;
-                // if the instance has the field with the name
-                if (tableGet(&instance->fields, name, &value)) {
-                    pop(vm);
-                    push(vm, value);
-                    break;
-                }
-                if(!bindMethod(vm, instance->klass, name)) {
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-
-                return INTERPRET_RUNTIME_ERROR; */
                 Value receiver = peek(vm, 0);
 
                 if (isObjType(receiver, OBJ_INSTANCE)) {

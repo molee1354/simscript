@@ -163,6 +163,15 @@ int disassembleInstruction(Chunk *chunk, int offset) {
         case OP_MODULE_VAR:
             return simpleInstruction("OP_MODULE_VAR", offset);
 
+        case OP_MAKE_LIST:
+            return byteInstruction("OP_MAKE_LIST", chunk, offset);
+        case OP_SUBSCRIPT_ASSIGN:
+            return simpleInstruction("OP_SUBSCRIPT_ASSIGN", offset);
+        case OP_SUBSCRIPT_IDX_NOPOP:
+            return simpleInstruction("OP_SUBSCRIPT_IDX_NOPOP", offset);
+        case OP_SUBSCRIPT_IDX:
+            return simpleInstruction("OP_SUBSCRIPT_IDX", offset);
+
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);
 

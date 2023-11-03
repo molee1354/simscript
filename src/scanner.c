@@ -340,6 +340,8 @@ Token scanToken() {
         case ')': return makeToken(TOKEN_RIGHT_PAREN);
         case '{': return makeToken(TOKEN_LEFT_BRACE);
         case '}': return makeToken(TOKEN_RIGHT_BRACE);
+        case '[': return makeToken(TOKEN_LEFT_BRACKET);
+        case ']': return makeToken(TOKEN_RIGHT_BRACKET);
         case ';': return makeToken(TOKEN_SEMICOLON);
         case ':': return makeToken(TOKEN_COLON);
         case '.': return makeToken(TOKEN_DOT);

@@ -16,7 +16,6 @@
 #endif
 
 #define REPL (parser->vm->repl)
-#define UNUSED(x) (void)(x)
 
 /**
  * @brief Method to return the current chunk in compilation
@@ -36,7 +35,7 @@ static Chunk* currentChunk(Compiler* compiler) {
 static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
-    fprintf(stderr, "COMPILER ERROR:\n");
+    fprintf(stderr, "\033[0;31mCOMPILER ERROR:\033[0m\n");
     fprintf(stderr, "  %s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",
                 parser->module->name->chars, token->line);
@@ -853,6 +852,56 @@ static void decrement(Compiler* compiler,bool canAssign) {
     emitByte(compiler, OP_DECREMENT);
 }
 
+static void list(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
+    int numElem = 0;
+    if (!check(compiler, TOKEN_RIGHT_BRACKET)) {
+        do {
+            if (check(compiler, TOKEN_RIGHT_BRACKET))
+                break;
+            parsePrecedence(compiler, PREC_OR);
+            numElem++;
+        } while(match(compiler, TOKEN_COMMA));
+    }
+    consume(compiler, TOKEN_RIGHT_BRACKET, "Expected ']' at list end.");
+    emitBytes(compiler, OP_MAKE_LIST, numElem);
+}
+
+static void subscript(Compiler* compiler, bool canAssign) {
+    parsePrecedence(compiler, PREC_OR);
+
+    consume(compiler, TOKEN_RIGHT_BRACKET, "Expected ']' after subscript.");
+    if (canAssign && match(compiler, TOKEN_EQUAL)) {
+        expression(compiler);
+        emitByte(compiler, OP_SUBSCRIPT_ASSIGN);
+    } else if (canAssign && match(compiler, TOKEN_PLUS_EQUALS)) {
+        emitByte(compiler, OP_SUBSCRIPT_IDX_NOPOP);
+        expression(compiler);
+        emitBytes(compiler, OP_ADD, OP_SUBSCRIPT_ASSIGN);
+    } else if (canAssign && match(compiler, TOKEN_MINUS_EQUALS)) {
+        emitByte(compiler, OP_SUBSCRIPT_IDX_NOPOP);
+        expression(compiler);
+        emitBytes(compiler, OP_SUBTRACT, OP_SUBSCRIPT_ASSIGN);
+    } else if (canAssign && match(compiler, TOKEN_STAR_EQUALS)) {
+        emitByte(compiler, OP_SUBSCRIPT_IDX_NOPOP);
+        expression(compiler);
+        emitBytes(compiler, OP_MULTIPLY, OP_SUBSCRIPT_ASSIGN);
+    } else if (canAssign && match(compiler, TOKEN_SLASH_EQUALS)) {
+        emitByte(compiler, OP_SUBSCRIPT_IDX_NOPOP);
+        expression(compiler);
+        emitBytes(compiler, OP_DIVIDE, OP_SUBSCRIPT_ASSIGN);
+
+    } else if (canAssign && match(compiler, TOKEN_PLUS_PLUS)) {
+        emitBytes(compiler, OP_SUBSCRIPT_IDX_NOPOP, OP_INCREMENT);
+        emitByte(compiler, OP_SUBSCRIPT_ASSIGN);
+    } else if (canAssign && match(compiler, TOKEN_MINUS_MINUS)) {
+        emitBytes(compiler, OP_SUBSCRIPT_IDX_NOPOP, OP_DECREMENT);
+        emitByte(compiler, OP_SUBSCRIPT_ASSIGN);
+    } else {
+        emitByte(compiler, OP_SUBSCRIPT_IDX);
+    }
+}
+
 /**
  * @brief The array of parse rules
  *
@@ -862,6 +911,9 @@ ParseRule rules[] = {
     [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
     [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
     [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LEFT_BRACKET]  = {list,     subscript,   PREC_SUBSCRIPT}, 
+    [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE}, 
+
     [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_DOT]           = {NULL,     dot,   PREC_CALL},
     [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
@@ -1253,6 +1305,10 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_DECREMENT:
         case OP_MODULE_VAR:
         case OP_MODULE_END:
+        case OP_MAKE_LIST:
+        case OP_SUBSCRIPT_IDX:
+        case OP_SUBSCRIPT_IDX_NOPOP:
+        case OP_SUBSCRIPT_ASSIGN:
             return 0;
 
         case OP_CONSTANT:
