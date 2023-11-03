@@ -35,7 +35,11 @@ static Chunk* currentChunk(Compiler* compiler) {
 static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
-    fprintf(stderr, "\033[0;31mCOMPILER ERROR:\033[0m\n");
+#ifdef _WIN32
+    fprintf(stderr, "COMPILE ERROR:\n");
+#else
+    fprintf(stderr, "\033[0;31mCOMPILE ERROR:\033[0m\n");
+#endif
     fprintf(stderr, "  %s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",
                 parser->module->name->chars, token->line);
