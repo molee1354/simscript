@@ -19,8 +19,11 @@
  * @param args The arguments
  * @return Value The elapsed time since the program started running
  */
-static Value clockNative(VM* vm __attribute__((unused)), int argCount __attribute__((unused)),
-        Value* args __attribute__((unused))) {
+static Value clockNative(VM* vm, int argCount, Value* args ) {
+    UNUSED(vm);
+    UNUSED(argCount);
+    UNUSED(args);
+
     return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
@@ -50,7 +53,7 @@ static Value sleepNative(VM* vm, int argCount, Value* args) {
 #else
     sleep(waitFor);
 #endif
-    return NULL_VAL;
+    return OKAY_VAL;
 }
 
 /**
@@ -72,6 +75,7 @@ static Value exitNative(VM* vm, int argCount, Value* args) {
     int exitCode = (int)AS_NUMBER(args[0]);
     printf("Program exit with exitcode %d\n", exitCode);
     exit(exitCode);
+    return OKAY_VAL;
 }
 
 /**
@@ -91,7 +95,7 @@ static Value putsNative(VM* vm, int argCount, Value* args) {
         return NULL_VAL;
     }
     printf("%s\n", AS_CSTRING(args[0]));
-    return NULL_VAL;
+    return OKAY_VAL;
 }
 
 /**
@@ -111,30 +115,28 @@ static Value systemNative(VM* vm, int argCount, Value* args) {
         return NULL_VAL;
     }
     system(AS_CSTRING(args[0]));
-    return NULL_VAL;
+    return OKAY_VAL;
 }
 
-/**
- * @brief Method to define new native functions. It takes a pointer to a C
- * function and the name it will be known in the language implementation
- *
- * @param name Name of native function
- * @param function Pointer to C function
- */
-static void defineNative(VM* vm, const char* name, NativeFn function) {
+void defineNative(VM* vm, Table* table, const char* name, NativeFn function) {
     push( vm, OBJ_VAL(copyString(vm, name, (int)strlen(name))) );
     push( vm, OBJ_VAL(newNative(vm, function)) );
-    tableSet(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+    tableSet(vm, table, AS_STRING(vm->stack[0]), vm->stack[1]);
+//    ObjNative *native = newNative(vm, function);
+//    push(vm, OBJ_VAL(native));
+//    ObjString *methodName = copyString(vm, name, strlen(name));
+//    push(vm, OBJ_VAL(methodName));
+//    tableSet(vm, table, methodName, OBJ_VAL(native));
     pop(vm);
     pop(vm);
 }
 
 void defineNatives(VM* vm) {
     // defining native functions
-    defineNative(vm, "clock", clockNative);
-    defineNative(vm, "puts", putsNative);
-    defineNative(vm, "exit", exitNative);
-    defineNative(vm, "sleep", sleepNative);
-    defineNative(vm, "system", systemNative);
+    defineNative(vm, &vm->globals, "clock", clockNative);
+    defineNative(vm, &vm->globals, "sleep", sleepNative);
+    defineNative(vm, &vm->globals, "puts", putsNative);
+    defineNative(vm, &vm->globals, "exit", exitNative);
+    defineNative(vm, &vm->globals, "system", systemNative);
 }
 

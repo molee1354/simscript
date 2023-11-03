@@ -20,6 +20,12 @@
 #define IS_MODULE(value) isObjType(value, OBJ_MODULE)
 
 /**
+ * @brief Macro to check if a value is of list type
+ *
+ */
+#define IS_LIST(value) isObjType(value, OBJ_LIST)
+
+/**
  * @brief Macro to check if a value is of bound-method type
  *
  */
@@ -66,6 +72,12 @@
  *
  */ 
 #define AS_MODULE(value)   ( (ObjModule*)AS_OBJ(value) )
+
+/**
+ * @brief Macro to convert into a module object
+ *
+ */ 
+#define AS_LIST(value)   ( (ObjList*)AS_OBJ(value) )
 
 /**
  * @brief Macro to convert into a bound-method object
@@ -118,6 +130,7 @@
  */
 typedef enum {
     OBJ_MODULE,
+    OBJ_LIST,
     OBJ_BOUND_METHOD,
     OBJ_CLASS,
     OBJ_CLOSURE,
@@ -150,7 +163,6 @@ typedef enum {
     TYPE_SCRIPT,
 } FunctionType;
 
-
 /**
  * @class ObjModule
  * @brief Defining modules
@@ -161,6 +173,15 @@ typedef struct {
     ObjString* path;
     Table values;
 } ObjModule;
+
+/**
+ * @class ObjList
+ * @brief Defining lists
+ */
+typedef struct {
+    Obj obj;
+    ValueArray items;
+} ObjList;
 
 /**
  * @class ObjFunction
@@ -271,6 +292,70 @@ typedef struct {
  * @return ObjModule* Pointer to new module
  */
 ObjModule* newModule(VM* vm, ObjString* name);
+
+/**
+ * @brief Method to create a new list
+ *
+ * @param vm 
+ * @return ObjList* Pointer to new list
+ */
+ObjList* newList(VM* vm);
+
+/**
+ * @brief Method to append a value to a list
+ *
+ * @param vm 
+ * @param list 
+ * @param value 
+ */
+void appendList(VM* vm, ObjList* list, Value value);
+
+/**
+ * @brief Method to check if an index is a valid index for a list
+ *
+ * @param vm 
+ * @param list 
+ * @param index 
+ * @return bool True if valid index
+ */
+bool validIndexList(VM* vm, ObjList* list, int index);
+
+/**
+ * @brief Method to get a value from a list with its index
+ *
+ * @param vm 
+ * @param list 
+ * @param index 
+ * @return Value value at index
+ */
+Value getFromIndexList(VM* vm, ObjList* list, int index);
+
+/**
+ * @brief Method to set a value to a index
+ *
+ * @param vm 
+ * @param list 
+ * @param index
+ * @param value Value to set at index
+ */
+void setToIndexList(VM* vm, ObjList* list, int index, Value value);
+
+/**
+ * @brief Method to delete a value from a list at given index
+ *
+ * @param vm 
+ * @param list 
+ * @param index 
+ */
+void deleteFromIndexList(VM* vm, ObjList* list, int index);
+
+/**
+ * @brief Method to clear a list
+ *
+ * @param vm 
+ * @param list 
+ */
+void clearList(VM* vm, ObjList* list);
 
 /**
  * @brief Method to create a new bound method

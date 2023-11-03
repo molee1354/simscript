@@ -12,7 +12,7 @@ PASSED=0
 N=1
 
 function _fail() {
-    printf "\033[0;33mFAIL\033[0m\n"
+    printf "\033[0;31mFAIL\033[0m\n"
 }
 
 function _pass() {
