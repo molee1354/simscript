@@ -30,9 +30,18 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
 }
 
 static Value insertMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
+    if (argCount != 2) {
+        runtimeError(vm, "'insert()' expects two arguments (element, index. %d provided)",
+                argCount);
+        return NULL_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    int index = AS_NUMBER(args[1]);
+    appendList(vm, list, NULL_VAL);
+    for (int i = list->items.count-1; i >= index; i--) {
+        list->items.values[i] = list->items.values[i-1];
+    }
+    list->items.values[index] = args[2];
     return OKAY_VAL;
 }
 
@@ -134,8 +143,8 @@ void defineListMethods(VM* vm) {
 
     defineNative(vm, &vm->listMethods, "contains", containsMethod);
     defineNative(vm, &vm->listMethods, "find", findMethod);
-    defineNative(vm, &vm->listMethods, "deleteMethod", deleteMethod);
-    defineNative(vm, &vm->listMethods, "insertMethod", insertMethod);
+    defineNative(vm, &vm->listMethods, "delete", deleteMethod);
+    defineNative(vm, &vm->listMethods, "insert", insertMethod);
     defineNative(vm, &vm->listMethods, "push", pushMethod);
     defineNative(vm, &vm->listMethods, "pop", popMethod);
     defineNative(vm, &vm->listMethods, "enqueue", enqueueMethod);

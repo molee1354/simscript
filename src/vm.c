@@ -22,7 +22,6 @@
  * May later be an argument to each of the functions.
  *
  */
-// VM vm;
 
 /**
  * @brief Method to reset the VM stack
