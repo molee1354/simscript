@@ -268,39 +268,39 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
                      name->chars);
         return false;
     }
-    if (isObjType(receiver, OBJ_MODULE)) {
-        ObjModule* module = AS_MODULE(receiver);
-        Value value;
-        if (!tableGet(&module->values, name, &value)) {
-            runtimeError(vm, "Could not access field '%s' in module %s.",
-                         name->chars, module->name->chars);
+    switch (getObjType(receiver)) {
+        default:
             return false;
-        }
-        return callValue(vm, value, argCount);
-    } else if (isObjType(receiver, OBJ_LIST)) {
-        Value value;
-        if (tableGet(&vm->listMethods, name, &value)) {
-            if (IS_NATIVE(value))
-                return callNativeMethod(vm, value, argCount);
-            push(vm, peek(vm, 0));
-            for (int i = 2; i <= argCount+1; i++) {
-                vm->stackTop[-i] = peek(vm, i);
+        case OBJ_MODULE: {
+            ObjModule* module = AS_MODULE(receiver);
+            Value value;
+            if (!tableGet(&module->values, name, &value)) {
+                runtimeError(vm, "Could not access field '%s' in module %s.",
+                             name->chars, module->name->chars);
+                return false;
             }
-            return call(vm, AS_CLOSURE(value), argCount+1);
-        }
-        runtimeError(vm, "No list method %s() found.", name->chars);
-        return false;
-    } else {
-        ObjInstance* instance = AS_INSTANCE(receiver);
-
-        // before we look up a method in a class, we look for a field with the
-        // same name.
-        Value value;
-        if (tableGet(&instance->fields, name, &value)) {
-            vm->stackTop[-argCount -1] = value;
             return callValue(vm, value, argCount);
         }
-        return invokeFromClass(vm, instance->klass, name, argCount);
+        case OBJ_LIST: {
+            Value value;
+            if (!tableGet(&vm->listMethods, name, &value)) {
+                runtimeError(vm, "No list method %s() found.", name->chars);
+                return false;
+            }
+            return callNativeMethod(vm, value, argCount);
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = AS_INSTANCE(receiver);
+
+            // before we look up a method in a class, we look for a field with the
+            // same name.
+            Value value;
+            if (tableGet(&instance->fields, name, &value)) {
+                vm->stackTop[-argCount -1] = value;
+                return callValue(vm, value, argCount);
+            }
+            return invokeFromClass(vm, instance->klass, name, argCount);
+        }
     }
 }
 
