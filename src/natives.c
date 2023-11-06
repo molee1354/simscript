@@ -53,7 +53,7 @@ static Value sleepNative(VM* vm, int argCount, Value* args) {
 #else
     sleep(waitFor);
 #endif
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 /**
@@ -75,7 +75,7 @@ static Value exitNative(VM* vm, int argCount, Value* args) {
     int exitCode = (int)AS_NUMBER(args[0]);
     printf("Program exit with exitcode %d\n", exitCode);
     exit(exitCode);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 /**
@@ -95,7 +95,7 @@ static Value putsNative(VM* vm, int argCount, Value* args) {
         return NULL_VAL;
     }
     printf("%s\n", AS_CSTRING(args[0]));
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 /**
@@ -115,7 +115,7 @@ static Value systemNative(VM* vm, int argCount, Value* args) {
         return NULL_VAL;
     }
     system(AS_CSTRING(args[0]));
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 void defineNative(VM* vm, Table* table, const char* name, NativeFn function) {

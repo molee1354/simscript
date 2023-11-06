@@ -3,6 +3,14 @@
 #include "object.h"
 #include "value.h"
 
+/**
+ * @brief Adding an element to the end of the list. O(n)
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value appendMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError(vm, "'append(value)' expects exactly one argument (%d provided)",
@@ -14,6 +22,14 @@ static Value appendMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
+/**
+ * @brief Adding an element at index 0. O(n)
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value prependMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError(vm, "'prepend(value)' expects exactly one argument (%d provided)",
@@ -29,6 +45,14 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
+/**
+ * @brief Insert an element at a specified index. O(n)
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value insertMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 2) {
         runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided)",
@@ -40,6 +64,11 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
+    if (index > list->items.count) {
+        runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                index, list->items.count-1);
+        return BAD_VAL;
+    }
     appendList(vm, list, NULL_VAL);
     for (int i = list->items.count-1; i >= index; i--) {
         list->items.values[i] = list->items.values[i-1];
@@ -48,6 +77,14 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
+/**
+ * @brief Deleting an element at a specified index.
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value deleteMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError(vm, "'delete(index)' expects exactly one argument (%d provided)",
@@ -56,6 +93,11 @@ static Value deleteMethod(VM* vm, int argCount, Value* args) {
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
+    if (index > list->items.count) {
+        runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                index, list->items.count-1);
+        return BAD_VAL;
+    }
     deleteFromIndexList(vm, list, index);
     return NULL_VAL;
 }
@@ -65,6 +107,14 @@ static Value pushMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
+/**
+ * @brief Pop value from list head. Deletes value as well.
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value popMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 0) {
         runtimeError(vm, "'pop()' expects no arguments (%d provided)",
@@ -77,11 +127,27 @@ static Value popMethod(VM* vm, int argCount, Value* args) {
     return out;
 }
 
+/**
+ * @brief Same as prepend. O(n)
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value enqueueMethod(VM* vm, int argCount, Value* args) {
     prependMethod(vm, argCount, args);
     return NULL_VAL;
 }
 
+/**
+ * @brief Dequeue value from list end. Deletes and returns value.
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value dequeueMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 0) {
         runtimeError(vm, "'pop()' expects no arguments (%d provided)",
@@ -97,7 +163,7 @@ static Value dequeueMethod(VM* vm, int argCount, Value* args) {
 
 /**
  * @brief If a given element is found in the list, returns the index, or returns
- * null
+ * null. O(n)
  *
  * @param vm 
  * @param argCount 
@@ -120,11 +186,28 @@ static Value findMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
+/**
+ * @brief Returns true of given value exists in an array
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value containsMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return NULL_VAL;
+    if (argCount != 1) {
+        runtimeError(vm, "'find()' expects one argument (%d provided)",
+                argCount);
+        return BAD_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    Value targ = args[1];
+    for (int i = 0; i < list->items.count; i++) {
+        if (valuesEqual(list->items.values[i], targ)) {
+            return TRUE_VAL;
+        }
+    }
+    return FALSE_VAL;
 }
 
 static Value extendMethod(VM* vm, int argCount, Value* args) {

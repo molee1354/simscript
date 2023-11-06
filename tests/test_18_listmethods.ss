@@ -20,6 +20,10 @@ function main() {
     if (ll.find(targ) != 1 ) {
         echo "FAIL test_18_listmethods.ss";
     }
+    echo ll.contains(targ);
+    if (!ll.contains(targ)) {
+        echo "FAIL test_18_listmethods.ss";
+    }
     ll.delete(1);
     echo ll;
     if (ll[1] == "BAM") {
