@@ -1,8 +1,5 @@
 #include "list.h"
-#include "natives.h"
-#include "object.h"
-#include "value.h"
-#include "vm.h"
+#include "../natives.h"
 
 /**
  * @brief Adding an element to the end of the list. O(n)

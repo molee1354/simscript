@@ -15,7 +15,7 @@
 #include "read.h"
 #include "value.h"
 
-#include "list.h"
+#include "objs/list.h"
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
