@@ -62,17 +62,14 @@ $(RELEASE_TARGET): $(OBJ) | $(BINDIR)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
-		mkdir -p $(dir $@); \
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: $(SRC_LIBDIR)/%.c | $(OBJDIR)
 	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
-		mkdir -p $(dir $@); \
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: $(SRC_OBJDIR)/%.c | $(OBJDIR)
 	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
-		mkdir -p $(dir $@); \
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR):
