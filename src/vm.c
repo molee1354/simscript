@@ -432,7 +432,6 @@ static void toString(VM* vm, Value value) {
 }
 
 static void concatenate(VM* vm) {
-    
     if (!IS_STRING(peek(vm, 0)) && IS_STRING(peek(vm, 1))) {
         toString(vm, peek(vm, 0));
     } else if (IS_STRING(peek(vm, 0)) && !IS_STRING(peek(vm, 1))) {

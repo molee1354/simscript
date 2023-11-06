@@ -2,6 +2,7 @@
 #include "natives.h"
 #include "object.h"
 #include "value.h"
+#include "vm.h"
 
 /**
  * @brief Adding an element to the end of the list. O(n)
@@ -13,7 +14,7 @@
  */
 static Value appendMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'append(value)' expects exactly one argument (%d provided)",
+        runtimeError(vm, "'append(value)' expects exactly one argument (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -32,7 +33,7 @@ static Value appendMethod(VM* vm, int argCount, Value* args) {
  */
 static Value prependMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'prepend(value)' expects exactly one argument (%d provided)",
+        runtimeError(vm, "'prepend(value)' expects exactly one argument (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -55,7 +56,7 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
  */
 static Value insertMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 2) {
-        runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided)",
+        runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -65,7 +66,7 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
     if (index > list->items.count) {
-        runtimeError(vm, "List index out of bounds (given %d, length %d)",
+        runtimeError(vm, "List index out of bounds (given %d, length %d).",
                 index, list->items.count-1);
         return BAD_VAL;
     }
@@ -87,14 +88,14 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
  */
 static Value deleteMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'delete(index)' expects exactly one argument (%d provided)",
+        runtimeError(vm, "'delete(index)' expects exactly one argument (%d provided).",
                 argCount);
         return BAD_VAL;
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
     if (index > list->items.count) {
-        runtimeError(vm, "List index out of bounds (given %d, length %d)",
+        runtimeError(vm, "List index out of bounds (given %d, length %d).",
                 index, list->items.count-1);
         return BAD_VAL;
     }
@@ -117,7 +118,7 @@ static Value pushMethod(VM* vm, int argCount, Value* args) {
  */
 static Value popMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 0) {
-        runtimeError(vm, "'pop()' expects no arguments (%d provided)",
+        runtimeError(vm, "'pop()' expects no arguments (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -196,7 +197,7 @@ static Value findMethod(VM* vm, int argCount, Value* args) {
  */
 static Value containsMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'find()' expects one argument (%d provided)",
+        runtimeError(vm, "'find()' expects one argument (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -211,22 +212,22 @@ static Value containsMethod(VM* vm, int argCount, Value* args) {
 }
 
 static Value extendMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return NULL_VAL;
-}
-
-static Value toStringMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
+    if (argCount != 2) {
+        runtimeError(vm, "'extend(list)' expects one argument (%d provided).",
+                argCount);
+        return BAD_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    ObjList* add = AS_LIST(args[1]);
+    for (int i = 0; i < add->items.count; i++) {
+        appendList(vm, list, add->items.values[i]);
+    }
     return NULL_VAL;
 }
 
 static Value lengthMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 0) {
-        runtimeError(vm, "'length()' expects exactly zero argument (%d provided)",
+        runtimeError(vm, "'length()' expects exactly zero argument (%d provided).",
                 argCount);
         return BAD_VAL;
     }
@@ -236,7 +237,7 @@ static Value lengthMethod(VM* vm, int argCount, Value* args) {
 
 static Value reverseMethod(VM *vm, int argCount, Value *args) {
     if (argCount != 0) {
-        runtimeError(vm, "reverse() takes no arguments (%d provided)", argCount);
+        runtimeError(vm, "reverse() takes no arguments (%d provided).", argCount);
         return BAD_VAL;
     }
 
@@ -266,5 +267,4 @@ void defineListMethods(VM* vm) {
     defineNative(vm, &vm->listMethods, "enqueue", enqueueMethod);
     defineNative(vm, &vm->listMethods, "dequeue", dequeueMethod);
     defineNative(vm, &vm->listMethods, "extend", extendMethod);
-    defineNative(vm, &vm->listMethods, "toString", toStringMethod);
 }
