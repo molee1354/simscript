@@ -36,9 +36,9 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
     if (parser->panicMode) return;
     parser->panicMode = true;
 #ifdef _WIN32
-    fprintf(stderr, "COMPILE ERROR:\n");
+    fprintf(stderr, "\nCOMPILE ERROR:\n");
 #else
-    fprintf(stderr, "\033[0;31mCOMPILE ERROR:\033[0m\n");
+    fprintf(stderr, "\n\033[0;31mCOMPILE ERROR:\033[0m\n");
 #endif
     fprintf(stderr, "  %s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",

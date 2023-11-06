@@ -5,7 +5,7 @@
 
 static Value appendMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'append()' expects exactly one argument (%d provided)",
+        runtimeError(vm, "'append(value)' expects exactly one argument (%d provided)",
                 argCount);
         return NULL_VAL;
     }
@@ -16,7 +16,7 @@ static Value appendMethod(VM* vm, int argCount, Value* args) {
 
 static Value prependMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'prepend()' expects exactly one argument (%d provided)",
+        runtimeError(vm, "'prepend(value)' expects exactly one argument (%d provided)",
                 argCount);
         return NULL_VAL;
     }
@@ -31,9 +31,12 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
 
 static Value insertMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 2) {
-        runtimeError(vm, "'insert()' expects two arguments (element, index. %d provided)",
+        runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided)",
                 argCount);
         return NULL_VAL;
+    }
+    if (!IS_NUMBER(args[1])){
+        runtimeError(vm, "Wrong argument type for arg 'index' in method 'insert()'.");
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
@@ -46,9 +49,14 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
 }
 
 static Value deleteMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
+    if (argCount != 1) {
+        runtimeError(vm, "'delete(index)' expects exactly one argument (index. %d provided)",
+                argCount);
+        return NULL_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    int index = AS_NUMBER(args[1]);
+    deleteFromIndexList(vm, list, index);
     return OKAY_VAL;
 }
 

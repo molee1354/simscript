@@ -43,9 +43,9 @@ void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
 #ifdef _WIN32
-    fprintf(stderr, "RUNTIME ERROR:\n");
+    fprintf(stderr, "\nRUNTIME ERROR:\n");
 #else
-    fprintf(stderr, "\033[0;31mRUNTIME ERROR:\033[0m\n");
+    fprintf(stderr, "\n\033[0;31mRUNTIME ERROR:\033[0m\n");
 #endif
     vfprintf(stderr, format, args);
     va_end(args);
@@ -76,9 +76,9 @@ void runtimeWarning(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
 #ifdef _WIN32
-    fprintf(stderr, "WARNING:");
+    fprintf(stderr, "\nWARNING:");
 #else
-    fprintf(stderr, "\033[0;33mWARNING:\033[0m ");
+    fprintf(stderr, "\n\033[0;33mWARNING:\033[0m ");
 #endif
     vfprintf(stderr, format, args);
     va_end(args);
@@ -614,8 +614,8 @@ static InterpretResult run(VM* vm) {
                         }
                         appendList(vm, list, item);
                     } else {
-                        runtimeError(vm, "List index out of bounds (given %d < %d)",
-                                index, -1*list->items.count);
+                    runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                                index, list->items.count-1);
                         return INTERPRET_RUNTIME_ERROR;
                     }
                 }
@@ -644,8 +644,8 @@ static InterpretResult run(VM* vm) {
                     case OBJ_LIST: {
                         ObjList* list = AS_LIST(receiver);
                         if (!validIndexList(vm, list, index)) {
-                            runtimeError(vm, "List index out of bounds (given %d < %d)",
-                                    index, -1*list->items.count);
+                            runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                                    index, list->items.count-1);
                             return INTERPRET_RUNTIME_ERROR;
                         }
                         value = getFromIndexList(vm, list, index);
@@ -671,8 +671,8 @@ static InterpretResult run(VM* vm) {
                 int index = AS_NUMBER(possibleIndex);
                 ObjList* list = AS_LIST(receiver);
                 if (!validIndexList(vm, list, index)) {
-                    runtimeError(vm, "List index out of bounds (given %d < %d)",
-                            index, -1*list->items.count);
+                    runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                            index, list->items.count-1);
                     return INTERPRET_RUNTIME_ERROR;
                 }
                 value = getFromIndexList(vm, list, index);

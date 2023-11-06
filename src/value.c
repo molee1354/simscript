@@ -53,10 +53,33 @@ void printValue(Value value) {
 #endif
 }
 
+static bool compareObj(Value a, Value b) {
+    if (AS_OBJ(a)->type != AS_OBJ(b)->type)
+        return false;
+    switch (AS_OBJ(a)->type) {
+        default:
+            return AS_OBJ(a) == AS_OBJ(b);
+        case OBJ_LIST: {
+            ObjList* list1 = AS_LIST(a);
+            ObjList* list2 = AS_LIST(b);
+            if (list1->items.count != list2->items.count)
+                return false;
+            for (int i = 0; i<list1->items.count; i++) {
+                if (list1->items.values[i] != list2->items.values[i])
+                    return false;
+            }
+            return true;
+        }
+    }
+}
+
 bool valuesEqual(Value a, Value b) {
 #ifdef NAN_BOXING
     if (IS_NUMBER(a) && IS_NUMBER(b)) {
         return AS_NUMBER(a) == AS_NUMBER(b);
+    }
+    if (IS_OBJ(a) && IS_OBJ(b)) {
+        return compareObj(a, b);
     }
     return a == b;
 #else
