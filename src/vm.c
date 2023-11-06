@@ -229,7 +229,7 @@ static bool callNativeMethod(VM* vm, Value method, int argCount) {
     NativeFn native = AS_NATIVE(method);
     Value result = native(vm, argCount, vm->stackTop-argCount-1);
 
-    if (IS_NULL(result)) return false;
+    if (IS_BAD(result)) return false;
 
     vm->stackTop -= argCount +1;
     push(vm, result);

@@ -7,18 +7,18 @@ static Value appendMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError(vm, "'append(value)' expects exactly one argument (%d provided)",
                 argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     ObjList* list = AS_LIST(args[0]);
     appendList(vm, list, args[1]);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value prependMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError(vm, "'prepend(value)' expects exactly one argument (%d provided)",
                 argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     ObjList* list = AS_LIST(args[0]);
     appendList(vm, list, NULL_VAL);
@@ -26,14 +26,14 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
         list->items.values[i] = list->items.values[i-1];
     }
     list->items.values[0] = args[1];
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value insertMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 2) {
         runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided)",
                 argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     if (!IS_NUMBER(args[1])){
         runtimeError(vm, "Wrong argument type for arg 'index' in method 'insert()'.");
@@ -45,82 +45,107 @@ static Value insertMethod(VM* vm, int argCount, Value* args) {
         list->items.values[i] = list->items.values[i-1];
     }
     list->items.values[index] = args[2];
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value deleteMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 1) {
-        runtimeError(vm, "'delete(index)' expects exactly one argument (index. %d provided)",
+        runtimeError(vm, "'delete(index)' expects exactly one argument (%d provided)",
                 argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
     deleteFromIndexList(vm, list, index);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value pushMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return OKAY_VAL;
+    prependMethod(vm, argCount, args);
+    return NULL_VAL;
 }
 
 static Value popMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return OKAY_VAL;
+    if (argCount != 0) {
+        runtimeError(vm, "'pop()' expects no arguments (%d provided)",
+                argCount);
+        return BAD_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    Value out = list->items.values[0];
+    deleteFromIndexList(vm, list, 0);
+    return out;
 }
 
 static Value enqueueMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return OKAY_VAL;
+    prependMethod(vm, argCount, args);
+    return NULL_VAL;
 }
 
 static Value dequeueMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return OKAY_VAL;
+    if (argCount != 0) {
+        runtimeError(vm, "'pop()' expects no arguments (%d provided)",
+                argCount);
+        return BAD_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    int outIdx = list->items.count-1;
+    Value out = list->items.values[outIdx];
+    deleteFromIndexList(vm, list, outIdx);
+    return out;
 }
 
+/**
+ * @brief If a given element is found in the list, returns the index, or returns
+ * null
+ *
+ * @param vm 
+ * @param argCount 
+ * @param args 
+ * @return 
+ */
 static Value findMethod(VM* vm, int argCount, Value* args) {
-    UNUSED(vm);
-    UNUSED(argCount);
-    UNUSED(args);
-    return OKAY_VAL;
+    if (argCount != 1) {
+        runtimeError(vm, "'find()' expects one argument (%d provided)",
+                argCount);
+        return BAD_VAL;
+    }
+    ObjList* list = AS_LIST(args[0]);
+    Value compare = args[1];
+    for (int i = 0; i < list->items.count; i++) {
+        if (valuesEqual(list->items.values[i], compare)) {
+            return NUMBER_VAL(i);
+        }
+    }
+    return NULL_VAL;
 }
 
 static Value containsMethod(VM* vm, int argCount, Value* args) {
     UNUSED(vm);
     UNUSED(argCount);
     UNUSED(args);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value extendMethod(VM* vm, int argCount, Value* args) {
     UNUSED(vm);
     UNUSED(argCount);
     UNUSED(args);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value toStringMethod(VM* vm, int argCount, Value* args) {
     UNUSED(vm);
     UNUSED(argCount);
     UNUSED(args);
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 static Value lengthMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 0) {
         runtimeError(vm, "'length()' expects exactly zero argument (%d provided)",
                 argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     ObjList* list = AS_LIST(args[0]);
     return NUMBER_VAL(list->items.count);
@@ -129,7 +154,7 @@ static Value lengthMethod(VM* vm, int argCount, Value* args) {
 static Value reverseMethod(VM *vm, int argCount, Value *args) {
     if (argCount != 0) {
         runtimeError(vm, "reverse() takes no arguments (%d provided)", argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
 
     ObjList *list = AS_LIST(args[0]);
@@ -140,7 +165,7 @@ static Value reverseMethod(VM *vm, int argCount, Value *args) {
         list->items.values[i] = list->items.values[listLength - i - 1];
         list->items.values[listLength - i - 1] = temp;
     }
-    return OKAY_VAL;
+    return NULL_VAL;
 }
 
 void defineListMethods(VM* vm) {
