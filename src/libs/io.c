@@ -29,24 +29,13 @@ static Value printlnMethod(VM* vm, int argCount, Value* args) {
     return NULL_VAL;
 }
 
-ObjModule* initLib_IO_base(VM* vm) {
-    ObjString* name = copyString(vm, "IO_base__", 9);
-    push(vm, OBJ_VAL(name));
-    ObjModule* ioLib = newModule(vm, name);
-    push(vm, OBJ_VAL(ioLib));
-    defineNative(vm, &ioLib->values, "print", printMethod);
-    defineNative(vm, &ioLib->values, "println", printlnMethod);
-    pop(vm);
-    pop(vm);
-    return ioLib;
-}
-
 ObjModule* initLib_IO(VM* vm) {
     ObjString* name = copyString(vm, "IO", 2);
     push(vm, OBJ_VAL(name));
     ObjModule* ioLib = newModule(vm, name);
     push(vm, OBJ_VAL(ioLib));
-    interpret(vm, "IO", IO_DEF);
+    defineNative(vm, &ioLib->values, "print", printMethod);
+    defineNative(vm, &ioLib->values, "println", printlnMethod);
     pop(vm);
     pop(vm);
     return ioLib;

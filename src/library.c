@@ -4,7 +4,6 @@
 #include "libs/io.h"
 
 StdLib libraries[] = {
-    {"IO_base", &initLib_IO_base},
     {"IO", &initLib_IO},
     {NULL, NULL}
 };
