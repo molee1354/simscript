@@ -162,6 +162,8 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_MODULE_END", offset);
         case OP_MODULE_VAR:
             return simpleInstruction("OP_MODULE_VAR", offset);
+        case OP_MODULE_BUILTIN:
+            return simpleInstruction("OP_MODULE_BUILTIN", offset);
 
         case OP_MAKE_LIST:
             return byteInstruction("OP_MAKE_LIST", chunk, offset);

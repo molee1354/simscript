@@ -10,6 +10,7 @@
 #include "scanner.h"
 #include "table.h"
 #include "value.h"
+#include "library.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
@@ -1337,6 +1338,7 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_CLASS:
         case OP_INHERIT:
         case OP_CALL:
+        case OP_MODULE_BUILTIN:
             return 2;
 
         case OP_INVOKE:
@@ -1518,6 +1520,26 @@ static void import(Compiler* compiler) {
     emitBytes(compiler, OP_MODULE, importIndex);
     emitByte(compiler, OP_POP);
 }
+
+static void useStatement(Compiler* compiler) {
+    consume(compiler, TOKEN_IDENTIFIER, "Expect library name after 'use'.");
+    uint8_t libVarName = identifierConstant(compiler, &compiler->parser->previous);
+    declareVariable(compiler, true, false);
+
+    int idx = getStdLib(compiler->parser->vm,
+                        compiler->parser->previous.start,
+                        compiler->parser->previous.length - compiler->parser->current.length);
+    if (idx == -1)
+        error(compiler->parser, "Invalid library name.");
+
+    emitBytes(compiler, OP_MODULE_BUILTIN, idx);
+    emitByte(compiler, libVarName);
+    defineVariable(compiler, libVarName);
+    emitByte(compiler, OP_MODULE_END);
+    consume(compiler, TOKEN_SEMICOLON, "Expect ';' after module import");
+   
+}
+
 /**
  * @brief Method to handle module statements
  */
@@ -1648,6 +1670,8 @@ static void declaration(Compiler* compiler) {
 static void statement(Compiler* compiler) {
     if (match(compiler, TOKEN_PRINT)) {
         printStatement(compiler);
+    } else if (match(compiler, TOKEN_USE)) {
+        useStatement(compiler);
     } else if (match(compiler, TOKEN_MODULE)) {
         moduleStatement(compiler);
     } else if (match(compiler, TOKEN_FOR)) {

@@ -119,9 +119,14 @@ static Value systemNative(VM* vm, int argCount, Value* args) {
 }
 
 void defineNative(VM* vm, Table* table, const char* name, NativeFn function) {
-    push( vm, OBJ_VAL(copyString(vm, name, (int)strlen(name))) );
-    push( vm, OBJ_VAL(newNative(vm, function)) );
-    tableSet(vm, table, AS_STRING(vm->stack[0]), vm->stack[1]);
+//    push( vm, OBJ_VAL(copyString(vm, name, (int)strlen(name))) );
+//    push( vm, OBJ_VAL(newNative(vm, function)) );
+//    tableSet(vm, table, AS_STRING(vm->stack[0]), OBJ_VAL(vm->stack[1]));
+    ObjNative* native = newNative(vm, function);
+    push(vm, OBJ_VAL(native));
+    ObjString* fname = copyString(vm, name, (int)strlen(name));
+    push(vm, OBJ_VAL(fname));
+    tableSet(vm, table, fname, OBJ_VAL(native));
     pop(vm);
     pop(vm);
 }

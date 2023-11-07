@@ -54,6 +54,7 @@ typedef enum {
     OP_MODULE,
     OP_MODULE_VAR,
     OP_MODULE_END,
+    OP_MODULE_BUILTIN,
 
     OP_NOT,
 

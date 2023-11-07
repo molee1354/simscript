@@ -5,6 +5,8 @@
 #include <time.h>
 
 #include "SVM.h"
+#include "library.h"
+#include "table.h"
 #include "vm.h"
 #include "chunk.h"
 #include "common.h"
@@ -878,6 +880,18 @@ static InterpretResult run(VM* vm) {
             }
             case OP_MODULE_END: {
                 vm->lastModule = frame->closure->function->module;
+                break;
+            }
+            case OP_MODULE_BUILTIN: {
+                int index = READ_BYTE();
+                ObjString* name = READ_STRING();
+                Value stdLibVal;
+                if (tableGet(&vm->modules, name, &stdLibVal)) {
+                    push(vm, stdLibVal);
+                    break;
+                }
+                ObjModule* stdLib = importStdLib(vm, index);
+                push(vm, OBJ_VAL(stdLib));
                 break;
             }
             case OP_NOT:
