@@ -56,10 +56,7 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
                 parser->previous.start,
                 parser->current.length,
                 parser->current.start
-//                token->length,
-//                token->start
                 );
-        // fprintf(stderr, " : %s\n", message);
         for (int i=0; i < parser->previous.length+3; i++) {
             fprintf(stderr, " ");
         }
