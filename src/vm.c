@@ -66,7 +66,7 @@ void runtimeError(VM* vm, const char* format, ...) {
                 function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n");
+            fprintf(stderr, "top-level script\n");
         } else{
             fprintf(stderr, "%s()\n", function->name->chars);
         }

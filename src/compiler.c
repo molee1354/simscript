@@ -43,11 +43,11 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
 #endif
     fprintf(stderr, "  %s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",
-                parser->module->name->chars, token->line);
+                parser->module->name->chars,
+                token->line);
 
     if (token->type==TOKEN_EOF) {
         fprintf(stderr, "  at end\n");
-        // fprintf(stderr, " : %s\n", message);
     } else if (token->type == TOKEN_ERROR) {
         // pass
     } else {
@@ -1079,7 +1079,7 @@ static uint8_t argumentList(Compiler* compiler) {
             argCount++;
         } while (match(compiler, TOKEN_COMMA));
     }
-    consume(compiler, TOKEN_RIGHT_PAREN, "Expect ')' after function arguments.");
+    consume(compiler, TOKEN_RIGHT_PAREN, "Missing ')' or ',' in function argument input.");
     return argCount;
 }
 
