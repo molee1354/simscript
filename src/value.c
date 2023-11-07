@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-
 #include "object.h"
 #include "memory.h"
 #include "value.h"
@@ -30,25 +27,25 @@ void freeValueArray(VM* vm, ValueArray* array) {
     initValueArray(array); // zero out the fields so it's in an empty state
 }
 
-void printValue(Value value) {
+void printValue(FILE *file, Value value) {
 #ifdef NAN_BOXING
     if (IS_BOOL(value)) {
-        printf(AS_BOOL(value) ? "true" : "false");
+        fprintf(file, AS_BOOL(value) ? "true" : "false");
     } else if (IS_NULL(value)) {
-        printf("null");
+        fprintf(file, "null");
     } else if (IS_NUMBER(value)) {
-        printf("%g", AS_NUMBER(value));
+        fprintf(file, "%g", AS_NUMBER(value));
     } else if (IS_OBJ(value)) {
-        printObject(value);
+        printObject(file, value);
     }
 #else
     switch (value.type) {
         case VAL_BOOL:
-            printf(AS_BOOL(value) ? "true" : "false");
+            fprintf(file, AS_BOOL(value) ? "true" : "false");
             break;
-        case VAL_NULL: printf("null"); break;
-        case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
-        case VAL_OBJ: printObject(value); break;
+        case VAL_NULL: fprintf(file, "null"); break;
+        case VAL_NUMBER: fprintf(file, "%g", AS_NUMBER(value)); break;
+        case VAL_OBJ: printObject(file, value); break;
     }
 #endif
 }

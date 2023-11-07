@@ -1,6 +1,7 @@
 #ifndef simscript_object_h
 #define simscript_object_h
 
+#include <stdio.h>
 #include "SVM.h"
 #include "common.h"
 #include "chunk.h"
@@ -440,7 +441,7 @@ ObjUpvalue* newUpvalue(VM* vm, Value* slot);
  *
  * @param value Value to print
  */
-void printObject(Value value);
+void printObject(FILE *file, Value value);
 
 /**
  * @brief Method to check if a given value is of a specified object type

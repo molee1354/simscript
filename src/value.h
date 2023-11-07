@@ -2,6 +2,7 @@
 #define simscript_value_h
 
 #include <string.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "SVM.h"
@@ -160,6 +161,6 @@ void freeValueArray(VM* vm, ValueArray* array);
  * @param value Value to print
  *
  */
-void printValue(Value value);
+void printValue(FILE* file, Value value);
     
 #endif

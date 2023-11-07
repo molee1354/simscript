@@ -497,7 +497,7 @@ static InterpretResult run(VM* vm) {
         printf("          ");
         for (Value* slot = vm->stack; slot < vm->stackTop; slot++) {
             printf("[ ");
-            printValue(*slot);
+            printValue(stdout, *slot);
             printf(" ]");
         }
         printf("\n");
@@ -907,7 +907,7 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_PRINT: {
-                printValue(pop(vm));
+                printValue(stdout, pop(vm));
                 printf("\n");
                 break;
             }

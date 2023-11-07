@@ -10,12 +10,13 @@ static Value printMethod(VM* vm, int argCount, Value* args) {
         return INTERPRET_RUNTIME_ERROR;
     }
     for (int i = 0; i < argCount; i++) {
-        printValue(args[i]);
+        printValue(stdout, args[i]);
         printf(" ");
     }
     puts("");
     return NULL_VAL;
 }
+
 static Value printlnMethod(VM* vm, int argCount, Value* args) {
     if (argCount < 1) {
         runtimeError(vm, "'println(value, ...)' takes at least one argument (%d provided)",
@@ -23,7 +24,7 @@ static Value printlnMethod(VM* vm, int argCount, Value* args) {
         return INTERPRET_RUNTIME_ERROR;
     }
     for (int i = 0; i < argCount; i++) {
-        printValue(args[i]);
+        printValue(stdout, args[i]);
         printf("\n");
     }
     return NULL_VAL;
