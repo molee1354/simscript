@@ -138,6 +138,7 @@ ObjClosure* newClosure(VM* vm, ObjFunction* function) {
 
 ObjFunction* newFunction(VM* vm, ObjModule* module, FunctionType type) {
     ObjFunction* function = ALLOCATE_OBJ(vm, ObjFunction, OBJ_FUNCTION);
+    function->variadic = 0;
     function->params = 0;
     function->upvalueCount = 0;
     function->name = NULL;

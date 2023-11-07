@@ -1128,13 +1128,21 @@ static void beginFunction(Compiler* compiler, Compiler* funcCompiler, FunctionTy
     consume(funcCompiler, TOKEN_LEFT_PAREN, "Expect '(' after function name.");
     // parameters
     if (!check(funcCompiler, TOKEN_RIGHT_PAREN)) {
+        bool isVariadic = false;
         do {
+            if (isVariadic)
+                error(funcCompiler->parser,
+                      "Variadic arguments must appear at the end.");
+            isVariadic = match(compiler, TOKEN_ELLIPSIS);
             funcCompiler->function->params++;
             if (funcCompiler->function->params > 255) {
                 errorAtCurrent(funcCompiler->parser, "Can't have more than 255 parameters");
             }
             uint8_t constant = parseVariable(funcCompiler, "Expect parameter name", false, false);
             defineVariable(funcCompiler, constant);
+            if (isVariadic) {
+                funcCompiler->function->variadic = isVariadic;
+            }
         } while (match(funcCompiler, TOKEN_COMMA));
     }
     consume(funcCompiler, TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");

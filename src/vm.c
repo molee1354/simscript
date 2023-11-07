@@ -164,7 +164,7 @@ static Value peek(VM* vm, int distance) {
  */
 static bool call(VM* vm, ObjClosure* closure, int argCount) {
     // checking argument numbers
-    if (argCount != closure->function->params) {
+    if ( (argCount+closure->function->variadic) != closure->function->params ) {
         runtimeError(vm, "Function %s() expected %d arguments but got %d.",
                 closure->function->name->chars,
                 closure->function->params,
