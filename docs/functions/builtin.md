@@ -1,4 +1,4 @@
-# Functions
+# Built-in Functions
 
 Simscript comes with a few built-in functions. They usually are direct implementations of C functions into the Simscript virtual machine, so their behavior can be modified directly in the source code.
 
@@ -7,7 +7,7 @@ Simscript comes with a few built-in functions. They usually are direct implement
 A function that returns the number of clock ticks that passed since the start of the program.
 
 - **arguments**: `none`
-- **returns**: `number`
+- **returns**: `Number`
   - The number of clock ticks elapsed since the start of the program.
 
 ## `sleep(sec)`

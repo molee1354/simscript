@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 
 #include "memory.h"
@@ -57,6 +56,56 @@ ObjModule* newModule(VM* vm, ObjString* name) {
     pop(vm);
 
     return module;
+}
+
+ObjList* newList(VM* vm) {
+    ObjList* list = ALLOCATE_OBJ(vm, ObjList, OBJ_LIST);
+    initValueArray(&list->items);
+    return list;
+}
+
+void appendList(VM *vm, ObjList *list, Value value) {
+    writeValueArray(vm, &list->items, value);
+}
+
+bool validIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index < 0)
+        index += list->items.count; // negative indices start from back
+    if (index < list->items.count && index >= 0)
+        return true;
+    return false;
+}
+
+Value getFromIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index < 0)
+        index += list->items.count;
+    return list->items.values[index];
+}
+
+void setToIndexList(VM *vm, ObjList *list, int index, Value value) {
+    UNUSED(vm);
+    if (index<0)
+        index += list->items.count;
+    list->items.values[index] = value;
+}
+
+void deleteFromIndexList(VM *vm, ObjList *list, int index) {
+    UNUSED(vm);
+    if (index<0)
+        index += list->items.count;
+    for (int i = index; i < list->items.count-1; i++) {
+        list->items.values[i] = list->items.values[i+1];
+    }
+    list->items.count--;
+}
+
+void clearList(VM* vm, ObjList* list) {
+    UNUSED(vm);
+    for (int i = 0; i<list->items.count; i++) {
+        deleteFromIndexList(vm, list, i);
+    }
 }
 
 ObjBoundMethod* newBoundMethod(VM* vm, Value receiver, ObjClosure* method) {
@@ -186,42 +235,52 @@ ObjUpvalue* newUpvalue(VM* vm, Value* slot) {
  *
  * @param function Pointer to a function object.
  */
-static void printFunction(ObjFunction* function) {
+static void printFunction(FILE* file, ObjFunction* function) {
     if (function->name == NULL) {
         printf("<script>");
         return;
     }
-    printf("<fn %s>", function->name->chars);
+    fprintf(file, "<fn %s>", function->name->chars);
 }
 
-void printObject(Value value) {
+void printObject(FILE* file, Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_MODULE:
-            printf("%s", AS_MODULE(value)->name->chars);
+            fprintf(file, "%s", AS_MODULE(value)->name->chars);
             break;
+        case OBJ_LIST: {
+            ObjList* list = AS_LIST(value);
+            fprintf(file, "[");
+            for (int i=0; i<list->items.count; i++) {
+                printValue(file, list->items.values[i]);
+                if (i != list->items.count-1) fprintf(file, ", ");
+            }
+            fprintf(file, "]");
+            break;
+        }
         case OBJ_BOUND_METHOD:
-            printFunction(AS_BOUND_METHOD(value)->method->function);
+            printFunction(file, AS_BOUND_METHOD(value)->method->function);
             break;
         case OBJ_CLASS:
-            printf("%s", AS_CLASS(value)->name->chars);
+            fprintf(file, "%s", AS_CLASS(value)->name->chars);
             break;
         case OBJ_CLOSURE:
-            printFunction(AS_CLOSURE(value)->function);
+            printFunction(file, AS_CLOSURE(value)->function);
             break;
         case OBJ_FUNCTION:
-            printFunction(AS_FUNCTION(value));
+            printFunction(file, AS_FUNCTION(value));
             break;
         case OBJ_NATIVE:
-            printf("<native function>");
+            fprintf(file, "<native function>");
             break;
         case OBJ_STRING:
-            printf("%s", AS_CSTRING(value));
+            fprintf(file, "%s", AS_CSTRING(value));
             break;
         case OBJ_UPVALUE:
-            printf("upvalue");
+            fprintf(file, "upvalue");
             break;
         case OBJ_INSTANCE:
-            printf("%s instance",
+            fprintf(file, "%s instance",
                     AS_INSTANCE(value)->klass->name->chars);
             break;
     }

@@ -5,13 +5,25 @@ DEBUG_CFLAGS = -g
 RELEASE_CFLAGS = -O3
 
 SRCDIR = src
-BINDIR = bin
+SRC_LIBDIR = $(SRCDIR)/libs
+SRC_OBJDIR = $(SRCDIR)/objs
+
 OBJDIR = obj
+OBJ_LIBDIR = $(OBJDIR)/libs
+OBJ_OBJDIR = $(OBJDIR)/objs
+
+BINDIR = bin
 TESTDIR = scripts
 INSTDIR = /usr/local/bin
 
 SRC = $(wildcard $(SRCDIR)/*.c)
-OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
+SRC_LIB = $(wildcard $(SRC_LIBDIR)/*.c)
+SRC_OBJ = $(wildcard $(SRC_OBJDIR)/*.c)
+
+OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC)) \
+   	  $(patsubst $(SRC_LIBDIR)/%.c,$(OBJ_LIBDIR)/%.o,$(SRC_LIB)) \
+   	  $(patsubst $(SRC_OBJDIR)/%.c,$(OBJ_OBJDIR)/%.o,$(SRC_OBJ))
+
 TARG = simscript
 DEBUG_TARGET = $(BINDIR)/debug
 RELEASE_TARGET = $(BINDIR)/$(TARG)
@@ -52,8 +64,16 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJDIR)/%.o: $(SRC_LIBDIR)/%.c | $(OBJDIR)
+	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: $(SRC_OBJDIR)/%.c | $(OBJDIR)
+	@ printf "%-8s : %-16s -->  %s\n" "compile" $< $@; \
+	$(CC) $(CFLAGS) -c $< -o $@
+
 $(OBJDIR):
-	@ mkdir -p $(OBJDIR); \
+	@ mkdir -p $(OBJDIR) $(OBJ_LIBDIR) $(OBJ_OBJDIR)
 
 $(BINDIR):
 	@ mkdir -p $(BINDIR)

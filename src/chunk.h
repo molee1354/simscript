@@ -27,6 +27,11 @@ typedef enum {
     OP_DEFINE_MODULE,
     OP_SET_MODULE,
 
+    OP_MAKE_LIST,
+    OP_SUBSCRIPT_ASSIGN,
+    OP_SUBSCRIPT_IDX,
+    OP_SUBSCRIPT_IDX_NOPOP,
+
     OP_GET_UPVALUE,
     OP_SET_UPVALUE,
     OP_GET_PROPERTY,
@@ -49,6 +54,7 @@ typedef enum {
     OP_MODULE,
     OP_MODULE_VAR,
     OP_MODULE_END,
+    OP_MODULE_BUILTIN,
 
     OP_NOT,
 

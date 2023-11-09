@@ -4,20 +4,26 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "SVM.h"
+#include "library.h"
+#include "table.h"
+#include "vm.h"
 #include "chunk.h"
 #include "common.h"
 #include "debug.h"
 #include "memory.h"
 #include "natives.h"
+#include "object.h"
 #include "read.h"
-#include "vm.h"
+#include "value.h"
+
+#include "objs/list.h"
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
  * May later be an argument to each of the functions.
  *
  */
-// VM vm;
 
 /**
  * @brief Method to reset the VM stack
@@ -38,7 +44,11 @@ static void resetStack(VM* vm) {
 void runtimeError(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    fprintf(stderr, "RUNTIME ERROR:\n");
+#ifdef _WIN32
+    fprintf(stderr, "\nRUNTIME ERROR:\n");
+#else
+    fprintf(stderr, "\n\033[0;31mRUNTIME ERROR:\033[0m\n");
+#endif
     vfprintf(stderr, format, args);
     va_end(args);
     fputs("\n", stderr);
@@ -56,12 +66,39 @@ void runtimeError(VM* vm, const char* format, ...) {
                 function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n\n");
+            fprintf(stderr, "top-level script\n");
         } else{
-            fprintf(stderr, "%s()\n\n", function->name->chars);
+            fprintf(stderr, "%s()\n", function->name->chars);
         }
     }
     resetStack(vm);
+}
+
+void runtimeWarning(VM* vm, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+#ifdef _WIN32
+    fprintf(stderr, "\nWARNING:");
+#else
+    fprintf(stderr, "\n\033[0;33mWARNING:\033[0m ");
+#endif
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+    for (int i = vm->frameCount-1; i>=0; i--) {
+        CallFrame* frame = &vm->frames[i];
+        ObjFunction* function = frame->closure->function;
+        size_t instruction = frame->ip - function->chunk.code - 1;
+
+        fprintf(stderr, "  @ '%s', line %d in ",
+                function->module->name->chars,
+                function->chunk.lines[instruction]);
+        if (function->name == NULL) {
+            fprintf(stderr, "script\n");
+        } else{
+            fprintf(stderr, "%s()\n", function->name->chars);
+        }
+    }
 }
 
 VM* initVM(bool repl) {
@@ -83,11 +120,14 @@ VM* initVM(bool repl) {
     initTable(&vm->strings);
     initTable(&vm->modules);
 
+    initTable(&vm->listMethods);
+
     vm->initString = NULL;
     vm->initString = copyString(vm, "init", 4);
 
     // defining native functions
     defineNatives(vm);
+    defineListMethods(vm);
     return vm;
 }
 
@@ -95,6 +135,7 @@ void freeVM(VM* vm) {
     freeTable(vm, &vm->globals);
     freeTable(vm, &vm->strings);
     freeTable(vm, &vm->modules);
+    freeTable(vm, &vm->listMethods);
     vm->initString = NULL;
     freeObjects(vm);
     free(vm);
@@ -123,9 +164,11 @@ static Value peek(VM* vm, int distance) {
  */
 static bool call(VM* vm, ObjClosure* closure, int argCount) {
     // checking argument numbers
-    if (argCount != closure->function->params) {
-        runtimeError(vm, "Expected %d arguments but got %d.",
-                closure->function->params, argCount);
+    if ( argCount != closure->function->params ) {
+        runtimeError(vm, "Function %s() expected %d arguments but got %d.",
+                closure->function->name->chars,
+                closure->function->params,
+                argCount);
         return false;
     }
     if (vm->frameCount == FRAMES_MAX) {
@@ -184,6 +227,17 @@ static bool callValue(VM* vm, Value callee, int argCount) {
     return false;
 }
 
+static bool callNativeMethod(VM* vm, Value method, int argCount) {
+    NativeFn native = AS_NATIVE(method);
+    Value result = native(vm, argCount, vm->stackTop-argCount-1);
+
+    if (IS_BAD(result)) return false;
+
+    vm->stackTop -= argCount +1;
+    push(vm, result);
+    return true;
+}
+
 /**
  * @brief Function to invoke the correct method from a class.
  *
@@ -211,30 +265,44 @@ static bool invokeFromClass(VM* vm, ObjClass* klass, ObjString* name, int argCou
  */
 static bool invoke(VM* vm, ObjString* name, int argCount) {
     Value receiver = peek(vm, argCount);
-//    if (!IS_INSTANCE(receiver)) {
-//        runtimeError(vm, "Only instances have methods. Method '%s' not found.",
-//                     name->chars);
-//        return false;
-//    }
-    if (isObjType(receiver, OBJ_MODULE)) {
-        ObjModule* module = AS_MODULE(receiver);
-        Value value;
-        if (!tableGet(&module->values, name, &value)) {
-            runtimeError(vm, "Undefined module property '%s'.", name->chars);
+    if (!IS_OBJ(receiver)) {
+        runtimeError(vm, "Invalid method call '%s()' to unsupported type.",
+                     name->chars);
+        return false;
+    }
+    switch (getObjType(receiver)) {
+        default:
             return false;
-        }
-        return callValue(vm, value, argCount);
-    } else {
-        ObjInstance* instance = AS_INSTANCE(receiver);
-
-        // before we look up a method in a class, we look for a field with the
-        // same name.
-        Value value;
-        if (tableGet(&instance->fields, name, &value)) {
-            vm->stackTop[-argCount -1] = value;
+        case OBJ_MODULE: {
+            ObjModule* module = AS_MODULE(receiver);
+            Value value;
+            if (!tableGet(&module->values, name, &value)) {
+                runtimeError(vm, "Could not access field '%s' in module %s.",
+                             name->chars, module->name->chars);
+                return false;
+            }
             return callValue(vm, value, argCount);
         }
-        return invokeFromClass(vm, instance->klass, name, argCount);
+        case OBJ_LIST: {
+            Value value;
+            if (!tableGet(&vm->listMethods, name, &value)) {
+                runtimeError(vm, "No list method %s() found.", name->chars);
+                return false;
+            }
+            return callNativeMethod(vm, value, argCount);
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = AS_INSTANCE(receiver);
+
+            // before we look up a method in a class, we look for a field with the
+            // same name.
+            Value value;
+            if (tableGet(&instance->fields, name, &value)) {
+                vm->stackTop[-argCount -1] = value;
+                return callValue(vm, value, argCount);
+            }
+            return invokeFromClass(vm, instance->klass, name, argCount);
+        }
     }
 }
 
@@ -366,7 +434,6 @@ static void toString(VM* vm, Value value) {
 }
 
 static void concatenate(VM* vm) {
-    
     if (!IS_STRING(peek(vm, 0)) && IS_STRING(peek(vm, 1))) {
         toString(vm, peek(vm, 0));
     } else if (IS_STRING(peek(vm, 0)) && !IS_STRING(peek(vm, 1))) {
@@ -430,7 +497,7 @@ static InterpretResult run(VM* vm) {
         printf("          ");
         for (Value* slot = vm->stack; slot < vm->stackTop; slot++) {
             printf("[ ");
-            printValue(*slot);
+            printValue(stdout, *slot);
             printf(" ]");
         }
         printf("\n");
@@ -512,6 +579,107 @@ static InterpretResult run(VM* vm) {
                 }
                 break;
             }
+            case OP_MAKE_LIST: {
+                ObjList* list = newList(vm);
+                uint8_t numElem = READ_BYTE();
+
+                push(vm, OBJ_VAL(list));
+                for (int i = numElem; i > 0; i--) {
+                    appendList(vm, list, peek(vm, i));
+                }
+                vm->stackTop -= numElem+1;
+                push(vm, OBJ_VAL(list));
+                break;
+            }
+            case OP_SUBSCRIPT_ASSIGN: {
+                Value item = pop(vm);
+                Value possibleIndex = pop(vm);
+                Value receiver = pop(vm);
+                if (!IS_LIST(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* list = AS_LIST(receiver);
+                int index = AS_NUMBER(possibleIndex);
+
+                if (!validIndexList(vm, list, index)) {
+                    if (index > list->items.count) {
+                        // "autovivification" with nulls
+                        runtimeWarning(vm, "Index value greater than list capacity.");
+                        for (int i = list->items.count; i < index-1; i++) {
+                            appendList(vm, list, NULL_VAL);
+                        }
+                        appendList(vm, list, item);
+                    } else {
+                    runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                                index, list->items.count-1);
+                        return INTERPRET_RUNTIME_ERROR;
+                    }
+                }
+                setToIndexList(vm, list, index, item);
+                push(vm, item);
+                break;
+            }
+            case OP_SUBSCRIPT_IDX: {
+                Value possibleIndex = pop(vm);
+                Value receiver = pop(vm);
+                Value value;
+
+                if (!IS_OBJ(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                int index = AS_NUMBER(possibleIndex);
+                switch (OBJ_TYPE(receiver)) {
+                    default:
+                        runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                        return INTERPRET_RUNTIME_ERROR;
+                    case OBJ_LIST: {
+                        ObjList* list = AS_LIST(receiver);
+                        if (!validIndexList(vm, list, index)) {
+                            runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                                    index, list->items.count-1);
+                            return INTERPRET_RUNTIME_ERROR;
+                        }
+                        value = getFromIndexList(vm, list, index);
+                        push(vm, value);
+                        break;
+                    }
+                }
+                break;
+            }
+            case OP_SUBSCRIPT_IDX_NOPOP: {
+                Value possibleIndex = peek(vm, 0);
+                Value receiver = peek(vm, 1);
+                Value value;
+                
+                if (!IS_LIST(receiver)) {
+                    runtimeError(vm, "Invalid subscript operation to unsupported type.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (!IS_NUMBER(possibleIndex)) {
+                    runtimeError(vm, "Subscript index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                int index = AS_NUMBER(possibleIndex);
+                ObjList* list = AS_LIST(receiver);
+                if (!validIndexList(vm, list, index)) {
+                    runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                            index, list->items.count-1);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                value = getFromIndexList(vm, list, index);
+                push(vm, value);
+                break;
+            }
             case OP_GET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
                 push(vm, *frame->closure->upvalues[slot]->location);
@@ -523,25 +691,6 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_GET_PROPERTY: {
-                /* if (!IS_INSTANCE(peek(vm,0))) {
-                    runtimeError(vm, "Only instances have callable properties.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                ObjInstance* instance = AS_INSTANCE(peek(vm,0));
-                ObjString* name = READ_STRING();
-
-                Value value;
-                // if the instance has the field with the name
-                if (tableGet(&instance->fields, name, &value)) {
-                    pop(vm);
-                    push(vm, value);
-                    break;
-                }
-                if(!bindMethod(vm, instance->klass, name)) {
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-
-                return INTERPRET_RUNTIME_ERROR; */
                 Value receiver = peek(vm, 0);
 
                 if (isObjType(receiver, OBJ_INSTANCE)) {
@@ -733,6 +882,18 @@ static InterpretResult run(VM* vm) {
                 vm->lastModule = frame->closure->function->module;
                 break;
             }
+            case OP_MODULE_BUILTIN: {
+                int index = READ_BYTE();
+                ObjString* name = READ_STRING();
+                Value stdLibVal;
+                if (tableGet(&vm->modules, name, &stdLibVal)) {
+                    push(vm, stdLibVal);
+                    break;
+                }
+                ObjModule* stdLib = importStdLib(vm, index);
+                push(vm, OBJ_VAL(stdLib));
+                break;
+            }
             case OP_NOT:
                 push(vm, BOOL_VAL(isFalsey(pop(vm))));
                 break;
@@ -746,7 +907,7 @@ static InterpretResult run(VM* vm) {
                 break;
             }
             case OP_PRINT: {
-                printValue(pop(vm));
+                printValue(stdout, pop(vm));
                 printf("\n");
                 break;
             }

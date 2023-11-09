@@ -63,6 +63,34 @@ baz = 4;
 
 Adding the `local` in front of a constant declaration scopes the constant to the local scope, meaning that it won't be accessed in any other scope (either nested or enclosing).
 
+## Lists
+
+Lists in Simscript are continuous blocks sections of data pieces that can hold pretty much anything. In other words, if you are familiar with lists in Python, Simscript lists will not be a surprise.
+
+Simply declare them using square brackets and you can subscript, `append()`, `prepend()`, `push()`, `pop()`, and so on. List can also function as stacks and queues, depending on what list method you call.
+
+Creating a list is as simple as:
+
+```javascript
+var foo = [0,1,2,3];
+echo foo; // [0, 1, 2, 3]
+
+echo foo[1]; // 1
+```
+
+You can call list methods with the dot `.` operator:
+
+```javascript
+foo.append(4);
+echo foo; // [0, 1, 2, 3, 4]
+var bar = foo.pop();
+
+echo foo; // [1, 2, 3, 4]
+echo bar; // 0
+```
+
+With stack and queue data structure methods, the element on index 0 is considered to be the "head" and the last element is considered to be the "tail". So `push()` will add an element to index 0, and `dequeue()` will remove and return the element at the very last index.
+
 ## Blocks
 
 Blocks in Simscript are specified with curly braces. Anything that comes within a set of curly braces is in its own scope, and scoping rules apply.
@@ -294,3 +322,7 @@ Khan           // from "file.ss"
 Hello, Marley  // from "file.ss"
 Bark!          // from "file.ss"
 ```
+
+## The Standard Library
+
+You can call the Simscript standard library with the `using` keyword. Unlike modules; however, you can assign arbitrary variable names

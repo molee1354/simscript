@@ -1,10 +1,10 @@
-# simscript `v0.0.6`
+# simscript `v0.0.7`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.6`](#simscript-v006)
+- [simscript `v0.0.7`](#simscript-v007)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -12,8 +12,8 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Importing Modules with the `module` Keyword](#importing-modules-with-the-module-keyword)
-    - [Updated Syntax with the `local` Keyword](#updated-syntax-with-the-local-keyword)
+    - [Lists](#lists)
+    - [Standard Library](#standard-library)
   - [Documentation](#documentation)
 
 ## Download
@@ -91,17 +91,17 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.6`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.7`). A full log of releases can be found [here](./docs/release.md).
 
-Simscript `v0.0.6` comes with some new and exciting changes, along with significant syntax updates. **This update will be one of the few updates where source code from previous versions won't be compatible**. So bear that in mind.
+Version `v0.0.7` is one of the biggest releases yet. And with how things are going, this should be something like the second-to-last patch update before all the syntax other language feature additions settle down. For a few patches after, most of the work will be setting up some of the Simscript standard libraries such that the language will have more of an identity as far as its use case goes.
 
-### Importing Modules with the `module` Keyword
+### Lists
 
-Simscript can now import external modules. This is a really exciting new addition as this allows for the development of larger-scale projects. You can check the updated syntax in the [syntax](./syntax) page.
+Simscript now has lists! Lists in Simscript are very similar to lists in some of the other dynamically typed languages, in that they are just memory sequences that can hold pretty much any piece of data. Along with lists comes a handful of list methods that do useful things like `append()`, `prepend()` and all the exciting stuff. More details on lists can be found in the [syntax](./docs/syntax.md) page and the [list methods](./docs/functions/lists.md) page.
 
-### Updated Syntax with the `local` Keyword
+### Standard Library
 
-Setting variable behavior with keywords prior to version `v0.0.6` was a bit unintuitive. Keywords used to set variable behavior did not fully reflect its functionality (looking at you, `let`). To fix this, a new `local` keyword was added and the `const` keyword is now a 'first-level' keyword when declaring variables, meaning that it now should come right before the variable name. Details in it usage can be found on the [syntax](./syntax.md) page.
+Using the `using` keyword, you can now call modules that are part of the standard library. At the moment there are only really two standard libraries set up, but there are plans on new and exciting standard libraries so don't get too disappointed at its rather underwhelming current state. You can look at some of the details at the [libraries](./docs/libraries/libs.md) page.
 
 ## Documentation
 

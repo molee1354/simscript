@@ -23,7 +23,7 @@ void disassembleChunk(Chunk *chunk, const char *name) {
 static int constantInstruction(const char* name, Chunk* chunk, int offset) {
     uint8_t constant = chunk->code[offset+1];
     printf("\033[0;32m%-16s\033[0m %4d '", name, constant);
-    printValue(chunk->constants.values[constant]);
+    printValue(stdout, chunk->constants.values[constant]);
     printf("'\n");
 
     /* +2 to the offset since OP_CONST is two bytes: 1 for opcode and 1 for
@@ -35,7 +35,7 @@ static int invokeInstruction(const char* name, Chunk* chunk, int offset) {
     uint8_t constant = chunk->code[offset+1];
     uint8_t argCount = chunk->code[offset+2];
     printf("\033[0;32m%-16s\033[0m (%d args) %4d '", name, argCount, constant);
-    printValue(chunk->constants.values[constant]);
+    printValue(stdout, chunk->constants.values[constant]);
     printf("'\n");
     return offset+3;
 }
@@ -162,6 +162,17 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_MODULE_END", offset);
         case OP_MODULE_VAR:
             return simpleInstruction("OP_MODULE_VAR", offset);
+        case OP_MODULE_BUILTIN:
+            return simpleInstruction("OP_MODULE_BUILTIN", offset);
+
+        case OP_MAKE_LIST:
+            return byteInstruction("OP_MAKE_LIST", chunk, offset);
+        case OP_SUBSCRIPT_ASSIGN:
+            return simpleInstruction("OP_SUBSCRIPT_ASSIGN", offset);
+        case OP_SUBSCRIPT_IDX_NOPOP:
+            return simpleInstruction("OP_SUBSCRIPT_IDX_NOPOP", offset);
+        case OP_SUBSCRIPT_IDX:
+            return simpleInstruction("OP_SUBSCRIPT_IDX", offset);
 
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);
@@ -188,7 +199,7 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             offset++;
             uint8_t constant = chunk->code[offset++];
             printf("%-16s %4d ", "OP_CLOSURE", constant);
-            printValue(chunk->constants.values[constant]);
+            printValue(stdout, chunk->constants.values[constant]);
             printf("\n");
             ObjFunction* function = AS_FUNCTION(
                     chunk->constants.values[constant]);
