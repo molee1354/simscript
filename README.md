@@ -1,10 +1,10 @@
-# simscript `v0.0.7rc1`
+# simscript `v0.0.7`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.7rc1`](#simscript-v007rc1)
+- [simscript `v0.0.7`](#simscript-v007)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -91,7 +91,7 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.7rc1`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.7`). A full log of releases can be found [here](./docs/release.md).
 
 Version `v0.0.7` is one of the biggest releases yet. And with how things are going, this should be something like the second-to-last patch update before all the syntax other language feature additions settle down. For a few patches after, most of the work will be setting up some of the Simscript standard libraries such that the language will have more of an identity as far as its use case goes.
 
