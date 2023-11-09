@@ -53,12 +53,12 @@ static Value prependMethod(VM* vm, int argCount, Value* args) {
  */
 static Value insertMethod(VM* vm, int argCount, Value* args) {
     if (argCount != 2) {
-        runtimeError(vm, "'insert(value, index)' expects two arguments (%d provided).",
+        runtimeError(vm, "'insert(index, value)' expects two arguments (%d provided).",
                 argCount);
         return BAD_VAL;
     }
     if (!IS_NUMBER(args[1])){
-        runtimeError(vm, "Wrong argument type for arg 'index' in method 'insert()'.");
+        runtimeError(vm, "Wrong argument type for arg 'index' in method 'insert(index, value)'.");
     }
     ObjList* list = AS_LIST(args[0]);
     int index = AS_NUMBER(args[1]);
@@ -209,7 +209,7 @@ static Value containsMethod(VM* vm, int argCount, Value* args) {
 }
 
 static Value extendMethod(VM* vm, int argCount, Value* args) {
-    if (argCount != 2) {
+    if (argCount != 1) {
         runtimeError(vm, "'extend(list)' expects one argument (%d provided).",
                 argCount);
         return BAD_VAL;
@@ -253,8 +253,6 @@ void defineListMethods(VM* vm) {
     defineNative(vm, &vm->listMethods, "append", appendMethod);
     defineNative(vm, &vm->listMethods, "prepend", prependMethod);
     defineNative(vm, &vm->listMethods, "length", lengthMethod);
-    defineNative(vm, &vm->listMethods, "reverse", reverseMethod);
-
     defineNative(vm, &vm->listMethods, "contains", containsMethod);
     defineNative(vm, &vm->listMethods, "find", findMethod);
     defineNative(vm, &vm->listMethods, "delete", deleteMethod);
@@ -264,4 +262,5 @@ void defineListMethods(VM* vm) {
     defineNative(vm, &vm->listMethods, "enqueue", enqueueMethod);
     defineNative(vm, &vm->listMethods, "dequeue", dequeueMethod);
     defineNative(vm, &vm->listMethods, "extend", extendMethod);
+    defineNative(vm, &vm->listMethods, "reverse", reverseMethod);
 }

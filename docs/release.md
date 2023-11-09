@@ -1,6 +1,18 @@
 # Releases History
 
-## Current Release `v0.0.6`
+## Current Release `v0.0.7`
+
+Version `v0.0.7` is one of the biggest releases yet. And with how things are going, this should be something like the second-to-last patch update before all the syntax other language feature additions settle down. For a few patches after, most of the work will be setting up some of the Simscript standard libraries such that the language will have more of an identity as far as its use case goes.
+
+### Lists
+
+Simscript now has lists! Lists in Simscript are very similar to lists in some of the other dynamically typed languages, in that they are just memory sequences that can hold pretty much any piece of data. Along with lists comes a handful of list methods that do useful things like `append()`, `prepend()` and all the exciting stuff. More details on lists can be found in the [syntax](./syntax.md) page and the [list methods](./functions/lists.md) page.
+
+### Standard Library
+
+Using the `using` keyword, you can now call modules that are part of the standard library. At the moment there are only really two standard libraries set up, but there are plans on new and exciting standard libraries so don't get too disappointed at its rather underwhelming current state. You can look at some of the details at the [libraries](./libraries/libs.md) page.
+
+## Version `v0.0.6`
 
 Simscript `v0.0.6` comes with some new and exciting changes, along with significant syntax updates. **This update will be one of the few updates where source code from previous versions won't be compatible**. So bear that in mind.
 
@@ -82,7 +94,7 @@ Here are some new features in version (`v0.0.1`).
 
 ### Added Built-in Functions
 
-New built-in functions are added. Their specific usage can be found [here](./docs/functions.md)
+New built-in functions are added. Their specific usage can be found [here](./functions/builtin.md)
 
 - `sleep()`
 - `exit()`

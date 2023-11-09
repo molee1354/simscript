@@ -5,7 +5,7 @@
 
 static Value errorMethod(VM* vm, int argCount, Value* args) {
     if (argCount < 1) {
-        runtimeError(vm, "'error(value, ...)' takes at least one argument (%d provided)",
+        runtimeError(vm, "'Error.print(value, ...)' takes at least one argument (%d provided)",
                      argCount);
         return INTERPRET_RUNTIME_ERROR;
     }
@@ -20,15 +20,16 @@ static Value errorMethod(VM* vm, int argCount, Value* args) {
 
 static Value errorlnMethod(VM* vm, int argCount, Value* args) {
     if (argCount < 1) {
-        runtimeError(vm, "'errorln(value, ...)' takes at least one argument (%d provided)",
+        runtimeError(vm, "'Error.println(value, ...)' takes at least one argument (%d provided)",
                      argCount);
         return INTERPRET_RUNTIME_ERROR;
     }
     fprintf(stderr, "\033[0;31m");
     for (int i = 0; i < argCount; i++) {
         printValue(stderr, args[i]);
-        fprintf(stderr, "\n");
+        fprintf(stderr," ");
     }
+    fprintf(stderr, "\n");
     fprintf(stderr, "\033[0m");
     return NULL_VAL;
 }

@@ -1667,7 +1667,7 @@ static void declaration(Compiler* compiler) {
 static void statement(Compiler* compiler) {
     if (match(compiler, TOKEN_PRINT)) {
         printStatement(compiler);
-    } else if (match(compiler, TOKEN_USE)) {
+    } else if (match(compiler, TOKEN_USING)) {
         useStatement(compiler);
     } else if (match(compiler, TOKEN_MODULE)) {
         moduleStatement(compiler);
