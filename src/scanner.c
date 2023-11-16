@@ -310,8 +310,8 @@ static Token number() {
  * @return Token Token of type TOKEN_STRING. Returns an error token if the
  * string is unterminated.
  */
-static Token string() {
-    while (peek() != '"' && !isAtEnd()) {
+static Token string(char termChar) {
+    while (peek() != termChar && !isAtEnd()) {
         // multiline string support
         if (peek() == '\n') scanner.line++;
         advance();
@@ -396,7 +396,8 @@ Token scanToken() {
               match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 
         // literal tokens
-        case '"': return string();
+        case '\'': return string('\'');
+        case '"': return string('"');
     }
 
     return errorToken("Unexpected Character.");
