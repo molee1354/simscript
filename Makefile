@@ -1,4 +1,4 @@
-CC = gcc
+CC = clang
 WINCC = x86_64-w64-mingw32-gcc
 CFLAGS = -Wall -Wextra
 DEBUG_CFLAGS = -g

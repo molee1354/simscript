@@ -217,12 +217,13 @@ static bool callValue(VM* vm, Value callee, int argCount) {
             }
             case OBJ_CLOSURE:
                 return call(vm, AS_CLOSURE(callee), argCount);
-            case OBJ_NATIVE:
+            case OBJ_NATIVE: {
                 NativeFn native = AS_NATIVE(callee);
                 Value result = native(vm, argCount, vm->stackTop-argCount);
                 vm->stackTop -= argCount + 1;
                 push(vm, result);
                 return true;
+            }
             default:
                 break; // non-callable object type
         }
