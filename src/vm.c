@@ -10,7 +10,6 @@
 #include "vm.h"
 #include "chunk.h"
 #include "common.h"
-#include "debug.h"
 #include "memory.h"
 #include "natives.h"
 #include "object.h"
@@ -18,6 +17,7 @@
 #include "value.h"
 
 #include "objs/list.h"
+#include "objs/string.h"
 
 /**
  * @brief Global vm instance to be referred to by all the methods. 
@@ -121,6 +121,7 @@ VM* initVM(bool repl) {
     initTable(&vm->modules);
 
     initTable(&vm->listMethods);
+    initTable(&vm->stringMethods);
 
     vm->initString = NULL;
     vm->initString = copyString(vm, "init", 4);
@@ -128,6 +129,7 @@ VM* initVM(bool repl) {
     // defining native functions
     defineNatives(vm);
     defineListMethods(vm);
+    defineStringMethods(vm);
     return vm;
 }
 
@@ -136,6 +138,7 @@ void freeVM(VM* vm) {
     freeTable(vm, &vm->strings);
     freeTable(vm, &vm->modules);
     freeTable(vm, &vm->listMethods);
+    freeTable(vm, &vm->stringMethods);
     vm->initString = NULL;
     freeObjects(vm);
     free(vm);
@@ -277,7 +280,7 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
             ObjModule* module = AS_MODULE(receiver);
             Value value;
             if (!tableGet(&module->values, name, &value)) {
-                runtimeError(vm, "Could not access field '%s' in module %s.",
+                runtimeError(vm, "Could not access field '%s' in module '%s'.",
                              name->chars, module->name->chars);
                 return false;
             }
@@ -286,7 +289,15 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
         case OBJ_LIST: {
             Value value;
             if (!tableGet(&vm->listMethods, name, &value)) {
-                runtimeError(vm, "No list method %s() found.", name->chars);
+                runtimeError(vm, "No list method '%s()' found.", name->chars);
+                return false;
+            }
+            return callNativeMethod(vm, value, argCount);
+        }
+        case OBJ_STRING: {
+            Value value;
+            if (!tableGet(&vm->stringMethods, name, &value)) {
+                runtimeError(vm, "No string method '%s()' found.", name->chars);
                 return false;
             }
             return callNativeMethod(vm, value, argCount);
