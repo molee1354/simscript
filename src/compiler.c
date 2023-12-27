@@ -39,9 +39,9 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
 #ifdef _WIN32
     fprintf(stderr, "\nCOMPILE ERROR:\n");
 #else
-    fprintf(stderr, "\n\033[0;31mCOMPILE ERROR:\033[0m\n");
+    fprintf(stderr, "\n\033[1;31mCOMPILE ERROR:\033[0m\n");
 #endif
-    fprintf(stderr, "  %s\n", message);
+    fprintf(stderr, "%s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",
                 parser->module->name->chars,
                 token->line);

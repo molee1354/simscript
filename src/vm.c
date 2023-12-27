@@ -47,7 +47,7 @@ void runtimeError(VM* vm, const char* format, ...) {
 #ifdef _WIN32
     fprintf(stderr, "\nRUNTIME ERROR:\n");
 #else
-    fprintf(stderr, "\n\033[0;31mRUNTIME ERROR:\033[0m\n");
+    fprintf(stderr, "\n\033[1;31mRUNTIME ERROR:\033[0m\n");
 #endif
     vfprintf(stderr, format, args);
     va_end(args);
@@ -66,9 +66,9 @@ void runtimeError(VM* vm, const char* format, ...) {
                 function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "top-level script\n");
+            fprintf(stderr, "top-level script\n\n");
         } else{
-            fprintf(stderr, "%s()\n", function->name->chars);
+            fprintf(stderr, "\033[1;36m%s()\033[0m\n", function->name->chars);
         }
     }
     resetStack(vm);
@@ -78,13 +78,14 @@ void runtimeWarning(VM* vm, const char* format, ...) {
     va_list args;
     va_start(args, format);
 #ifdef _WIN32
-    fprintf(stderr, "\nWARNING:");
+    fprintf(stderr, "\nWARNING:\n");
 #else
-    fprintf(stderr, "\n\033[0;33mWARNING:\033[0m ");
+    fprintf(stderr, "\n\033[1;33mWARNING:\033[0m\n");
 #endif
     vfprintf(stderr, format, args);
     va_end(args);
     fputs("\n", stderr);
+
     for (int i = vm->frameCount-1; i>=0; i--) {
         CallFrame* frame = &vm->frames[i];
         ObjFunction* function = frame->closure->function;
@@ -94,9 +95,9 @@ void runtimeWarning(VM* vm, const char* format, ...) {
                 function->module->name->chars,
                 function->chunk.lines[instruction]);
         if (function->name == NULL) {
-            fprintf(stderr, "script\n");
+            fprintf(stderr, "top-level script\n\n");
         } else{
-            fprintf(stderr, "%s()\n", function->name->chars);
+            fprintf(stderr, "\033[1;36m%s()\033[0m\n", function->name->chars);
         }
     }
 }
