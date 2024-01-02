@@ -3,10 +3,12 @@
 #include "library.h"
 #include "libs/error.h"
 #include "libs/io.h"
+#include "libs/maths.h"
 
 StdLib libraries[] = {
     {"Error", &initLib_Error},
     {"IO", &initLib_IO},
+    {"Math", &initLib_Math},
     {NULL, NULL}
 };
 

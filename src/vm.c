@@ -651,6 +651,8 @@ static InterpretResult run(VM* vm) {
                     return INTERPRET_RUNTIME_ERROR;
                 }
                 int index = AS_NUMBER(possibleIndex);
+
+                // add more receivers as language expands
                 switch (OBJ_TYPE(receiver)) {
                     default:
                         runtimeError(vm, "Invalid subscript operation to unsupported type.");
@@ -663,6 +665,18 @@ static InterpretResult run(VM* vm) {
                             return INTERPRET_RUNTIME_ERROR;
                         }
                         value = getFromIndexList(vm, list, index);
+                        push(vm, value);
+                        break;
+                    }
+                    case OBJ_STRING: {
+                        ObjString* str = AS_STRING(receiver);
+                        if (index > str->length) {
+                            runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                                    index, str->length-1);
+                            return INTERPRET_RUNTIME_ERROR;
+                        } else if (index < 0)
+                            index += str->length;
+                        value = OBJ_VAL(copyString(vm, &str->chars[index], 1));
                         push(vm, value);
                         break;
                     }

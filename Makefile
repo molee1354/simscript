@@ -1,33 +1,33 @@
 CC = clang
 WINCC = x86_64-w64-mingw32-gcc
-CFLAGS = -Wall -Wextra
-DEBUG_CFLAGS = -g
-RELEASE_CFLAGS = -O3
+CFLAGS = -Wall -Wextra -Wno-unused-command-line-argument -lm
+DEBUG_CFLAGS := -g
+RELEASE_CFLAGS := -O3
 
 SRCDIR = src
-SRC_LIBDIR = $(SRCDIR)/libs
-SRC_OBJDIR = $(SRCDIR)/objs
+SRC_LIBDIR := $(SRCDIR)/libs
+SRC_OBJDIR := $(SRCDIR)/objs
 
 OBJDIR = obj
-OBJ_LIBDIR = $(OBJDIR)/libs
-OBJ_OBJDIR = $(OBJDIR)/objs
+OBJ_LIBDIR := $(OBJDIR)/libs
+OBJ_OBJDIR := $(OBJDIR)/objs
 
 BINDIR = bin
-TESTDIR = scripts
-INSTDIR = /usr/local/bin
+TESTDIR := scripts
+INSTDIR := /usr/local/bin
 
 SRC = $(wildcard $(SRCDIR)/*.c)
-SRC_LIB = $(wildcard $(SRC_LIBDIR)/*.c)
-SRC_OBJ = $(wildcard $(SRC_OBJDIR)/*.c)
+SRC_LIB := $(wildcard $(SRC_LIBDIR)/*.c)
+SRC_OBJ := $(wildcard $(SRC_OBJDIR)/*.c)
 
-OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC)) \
+OBJ := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC)) \
    	  $(patsubst $(SRC_LIBDIR)/%.c,$(OBJ_LIBDIR)/%.o,$(SRC_LIB)) \
    	  $(patsubst $(SRC_OBJDIR)/%.c,$(OBJ_OBJDIR)/%.o,$(SRC_OBJ))
 
 TARG = simscript
-DEBUG_TARGET = $(BINDIR)/debug
-RELEASE_TARGET = $(BINDIR)/$(TARG)
-RELEASE_TARGET_WIN = $(BINDIR)/$(TARG).exe
+DEBUG_TARGET := $(BINDIR)/debug
+RELEASE_TARGET := $(BINDIR)/$(TARG)
+RELEASE_TARGET_WIN := $(BINDIR)/$(TARG).exe
 
 .PHONY: all debug test release install uninstall clean windows
 
