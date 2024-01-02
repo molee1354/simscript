@@ -48,7 +48,7 @@ ObjString* dirName(VM* vm, char* path, int len) {
 bool validPath(char *directory, char *path, char *ret) {
     char buf[PATHLEN]; 
     if (*path == PATHSEP) {
-        snprintf(buf, PATHLEN, path);
+        snprintf(buf, PATHLEN, "%s", path);
     } else {
         snprintf(buf, PATHLEN, "%s%c%s", directory, PATHSEP, path);
     }
