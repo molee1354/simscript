@@ -1,6 +1,22 @@
 # Releases History
 
-## Current Release `v0.0.7`
+## Current Release `v0.0.8rc1`
+
+Version `v0.0.8` is a comparatively smaller release that aims to fill the little gaps in the language. With significant improvements to strings, a newly added math standard library, and more helpful error messages, this patch should set Simscript up in a good spot for future, more additive improvements.
+
+### Strings
+
+Strings now support escape characters. I am surprised that the implementation of a feature that's so fundamental has been ignored for so long, but now that it's added, it's opened up avenues for the addition of new and more exciting features in the future!
+
+### Math Standard Library
+
+A math library has been added to the Simscript Standard Library. More details can be found [here](./libraries/Math.md). Happy mathing!
+
+### Prettier Error Messages
+
+Error messages now are more consistent and visually appealing. Runtime errors have color highlights to the functions that hold the error, and the overall formatting has been fixed so that any error message will appear to be more consistent throughout.
+
+## Version `v0.0.7`
 
 Version `v0.0.7` is one of the biggest releases yet. And with how things are going, this should be something like the second-to-last patch update before all the syntax other language feature additions settle down. For a few patches after, most of the work will be setting up some of the Simscript standard libraries such that the language will have more of an identity as far as its use case goes.
 
