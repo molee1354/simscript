@@ -3,4 +3,5 @@
 Documentations on the Simscript standard library can be found here.
 
 - [`IO`](./IO.md)
-- [`Error`](./error.md)
+- [`Error`](./Error.md)
+- [`Math`](./Math.md)

@@ -26,7 +26,7 @@ typedef enum {
     TOKEN_MINUS_EQUALS, TOKEN_SLASH_EQUALS, TOKEN_STAR_EQUALS,
 
     // Literals.
-    TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_NUMBER,
+    TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_RSTRING, TOKEN_NUMBER,
 
     // Keywords.
     TOKEN_AND, TOKEN_CLASS, TOKEN_ELSE, TOKEN_FALSE,
@@ -37,6 +37,13 @@ typedef enum {
 
     TOKEN_ERROR, TOKEN_EOF
 } Tokentype;
+
+typedef struct {
+    const char* start;
+    const char* current;
+    int line;
+    bool rawString;
+} Scanner;
 
 /**
  * @brief Token struct to hold the token defintion
@@ -54,12 +61,12 @@ typedef struct {
  * @param source An array of characters collected from the input stream.
  *
  */
-void initScanner(const char* source);
+void initScanner(Scanner* scanner, const char* source);
 
 /**
  * @brief Method to scan and return the current token.
  *
  */
-Token scanToken();
+Token scanToken(Scanner* scanner);
 
 #endif

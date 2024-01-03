@@ -37,11 +37,11 @@ static Value clockNative(VM* vm, int argCount, Value* args ) {
 static Value sleepNative(VM* vm, int argCount, Value* args) {
     if (argCount > 1) {
         runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     if (!IS_NUMBER(args[0])) {
         runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
+        return BAD_VAL;
     }
     int waitFor = (int)AS_NUMBER(args[0]);
 
@@ -66,11 +66,11 @@ static Value sleepNative(VM* vm, int argCount, Value* args) {
 static Value exitNative(VM* vm, int argCount, Value* args) {
     if (argCount > 1) {
         runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     if (!IS_NUMBER(args[0])) {
         runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
+        return BAD_VAL;
     }
     int exitCode = (int)AS_NUMBER(args[0]);
     printf("Program exit with exitcode %d\n", exitCode);
@@ -88,11 +88,11 @@ static Value exitNative(VM* vm, int argCount, Value* args) {
 static Value putsNative(VM* vm, int argCount, Value* args) {
     if (argCount > 1) {
         runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     if (!IS_STRING(args[0])) {
         runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
+        return BAD_VAL;
     }
     printf("%s\n", AS_CSTRING(args[0]));
     return NULL_VAL;
@@ -108,11 +108,11 @@ static Value putsNative(VM* vm, int argCount, Value* args) {
 static Value systemNative(VM* vm, int argCount, Value* args) {
     if (argCount > 1) {
         runtimeError(vm, "Too many arguments provided : %d", argCount);
-        return NULL_VAL;
+        return BAD_VAL;
     }
     if (!IS_STRING(args[0])) {
         runtimeError(vm, "Incorrect argument type.");
-        return NULL_VAL;
+        return BAD_VAL;
     }
     system(AS_CSTRING(args[0]));
     return NULL_VAL;

@@ -18,9 +18,44 @@ Comments in Simscript are very much like comments in C (or Java or Javascript).
 
 While Simscript does not require explicit type declarations, there are a few built-in types that variables and other bits of primitive data tend to fall into.
 
-- `Boolean`: `true` or `false` values that are used often in conditionals and comparision operations.
-- `Number`:  Any numeric data in Simscript is of type `Number`. Simscript does not differentiate between integers and floating-point decimals as of now.
-- `String`: Any set of characters enclosed by double quotations `"` is considered a string.
+### `Boolean`
+
+`true` or `false` values that are used often in conditionals and comparison operations.
+
+### `Number`
+
+Any numeric data in Simscript is of type `Number`. Simscript does not differentiate between integers and floating-point decimals.
+
+### `String`
+
+Any set of characters enclosed by single `'` or double `"` quotation marks is considered a string.
+
+Strings support escape characters, so
+
+```javascript
+var foo = "Hello\nKhan!";
+echo foo;
+```
+
+would result in
+
+```shell
+Hello
+Khan!
+```
+
+Raw strings in Simscript are defined by prepending a single `r` in front of the quotation marks that enclose a string value.
+
+```javascript
+var foo = r"Hello\nKhan!";
+echo foo;
+```
+
+would result in
+
+```shell
+Hello\nKhan!
+```
 
 ## Variables
 
@@ -210,7 +245,7 @@ var dog = Animal("Bark");
 dog.speak();
 ```
 
-Running this program would result in:
+Running this program would result in
 
 ```shell
 Bark!
@@ -325,4 +360,20 @@ Bark!          // from "file.ss"
 
 ## The Standard Library
 
-You can call the Simscript standard library with the `using` keyword. Unlike modules; however, you can assign arbitrary variable names
+You can call the Simscript standard library with the `using` keyword. Unlike modules; however, you can't assign arbitrary variable names.
+
+To call the `IO` standard library you can do the following:
+
+```javascript
+using IO;
+
+IO.println("Hello Khan!");
+```
+
+Which would result in:
+
+```shell
+Hello Khan!
+```
+
+More information about using standard libraries and the specific details for each library can be found in the [libraries](./libraries/libs.md) page.

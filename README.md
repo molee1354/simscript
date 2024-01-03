@@ -1,10 +1,10 @@
-# simscript `v0.0.7`
+# simscript `v0.0.8rc1`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.7`](#simscript-v007)
+- [simscript `v0.0.8rc1`](#simscript-v008rc1)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -12,8 +12,9 @@ A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](h
     - [Building](#building)
     - [Usage](#usage)
   - [Current Release](#current-release)
-    - [Lists](#lists)
-    - [Standard Library](#standard-library)
+    - [Strings](#strings)
+    - [Math Standard Library](#math-standard-library)
+    - [Prettier Error Messages](#prettier-error-messages)
   - [Documentation](#documentation)
 
 ## Download
@@ -26,18 +27,15 @@ Setting up simscript can be done in just a few steps.
 
 ### Dependencies
 
-There aren't very many dependencies for building Simscript; however, it is important to mention that using `clang` will not properly compile the code.
-
-```shell
-make
-gcc
-```
-
-Simscript uses `make` for building and `gcc` for code compilation.
+There aren't very many dependencies for building Simscript: just a simple C compiler will suffice (usually `gcc` or `clang`).
+| Dependency | Usage |
+| --- | --- |
+| `gcc/clang` | C compiler for building Simscript from source |
+| `make` | Build automation tool for compiling Simscript |
 
 ### Building
 
-Clone the git repostitory
+Clone the git repository
 
 ```shell
 git clone https://github.com/molee1354/simscript.git
@@ -91,18 +89,22 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.7`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.8rc1`). A full log of releases can be found [here](./docs/release.md).
 
-Version `v0.0.7` is one of the biggest releases yet. And with how things are going, this should be something like the second-to-last patch update before all the syntax other language feature additions settle down. For a few patches after, most of the work will be setting up some of the Simscript standard libraries such that the language will have more of an identity as far as its use case goes.
+Version `v0.0.8` is a comparatively smaller release that aims to fill the little gaps in the language. With significant improvements to strings, a newly added math standard library, and more helpful error messages, this patch should set Simscript up in a good spot for future, more additive improvements.
 
-### Lists
+### Strings
 
-Simscript now has lists! Lists in Simscript are very similar to lists in some of the other dynamically typed languages, in that they are just memory sequences that can hold pretty much any piece of data. Along with lists comes a handful of list methods that do useful things like `append()`, `prepend()` and all the exciting stuff. More details on lists can be found in the [syntax](./docs/syntax.md) page and the [list methods](./docs/functions/lists.md) page.
+Strings now support escape characters. I am surprised that the implementation of a feature that's so fundamental has been ignored for so long, but now that it's added, it's opened up avenues for the addition of new and more exciting features in the future!
 
-### Standard Library
+### Math Standard Library
 
-Using the `using` keyword, you can now call modules that are part of the standard library. At the moment there are only really two standard libraries set up, but there are plans on new and exciting standard libraries so don't get too disappointed at its rather underwhelming current state. You can look at some of the details at the [libraries](./docs/libraries/libs.md) page.
+A math library has been added to the Simscript Standard Library. More details can be found [here](./libraries/Math.md). Happy mathing!
+
+### Prettier Error Messages
+
+Error messages now are more consistent and visually appealing. Runtime errors have color highlights to the functions that hold the error, and the overall formatting has been fixed so that any error message will appear to be more consistent throughout.
 
 ## Documentation
 
-Documentation for Simscript can be found [here](./docs/syntax.md).
+Simscript documentation can be found [here](./docs/syntax.md).

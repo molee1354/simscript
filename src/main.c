@@ -8,8 +8,8 @@
 #include "read.h"
 #include "vm.h"
 
-#define VERSION "0.0.7"
-#define TIME    "Nov 10 2023, 03:36"
+#define VERSION "0.0.8rc1"
+#define TIME    "Jan 02 2024, 20:36"
 
 #ifdef _WIN32
 #define PLATFORM "Windows"
