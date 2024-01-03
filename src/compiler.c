@@ -39,9 +39,9 @@ static void errorAt(Parser* parser, Token* token, const char* message) {
 #ifdef _WIN32
     fprintf(stderr, "\nCOMPILE ERROR:\n");
 #else
-    fprintf(stderr, "\n\033[0;31mCOMPILE ERROR:\033[0m\n");
+    fprintf(stderr, "\n\033[1;31mCOMPILE ERROR:\033[0m\n");
 #endif
-    fprintf(stderr, "  %s\n", message);
+    fprintf(stderr, "%s\n", message);
     fprintf(stderr, "  @ '%s', line %d\n",
                 parser->module->name->chars,
                 token->line);
@@ -91,7 +91,7 @@ static void advance(Parser* parser) {
     parser->previous = parser->current;
 
     for (;;) {
-        parser->current = scanToken();
+        parser->current = scanToken(&parser->scanner);
         if (parser->current.type != TOKEN_ERROR) break;
 
         errorAtCurrent(parser, parser->current.start);
@@ -645,15 +645,83 @@ static void or_(Compiler* compiler, bool canAssign) {
     patchJump(compiler, endJump);
 }
 
+static int parseEscapeSequence(Parser *parser, char *string, int length) {
+    UNUSED(parser);
+    for (int i = 0; i < length - 1; i++) {
+        if (string[i] == '\\') {
+            switch (string[i + 1]) {
+                case 'n': {
+                    string[i + 1] = '\n';
+                    break;
+                }
+                case 't': {
+                    string[i + 1] = '\t';
+                    break;
+                }
+                case 'r': {
+                    string[i + 1] = '\r';
+                    break;
+                }
+                case 'v': {
+                    string[i + 1] = '\v';
+                    break;
+                }
+                case '\\': {
+                    string[i + 1] = '\\';
+                    break;
+                }
+                case '\'':
+                case '"': {
+                    break;
+                }
+                default: {
+                    continue;
+                }
+            }
+            memmove(&string[i], &string[i + 1], length - i);
+            length -= 1;
+        }
+    }
+
+    return length;
+}
+
+static void rawString(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
+    if (match(compiler, TOKEN_STRING)) {
+        Parser* parser = compiler->parser;
+        emitConstant(compiler, OBJ_VAL(copyString(parser->vm,
+                                                  parser->previous.start+1,
+                                                  parser->previous.length-2)));
+        return ;
+    }
+    consume(compiler, TOKEN_STRING, "Expected raw string after single quote opening.");
+}
+
+static Value parseString(Compiler* compiler, bool canAssign) {
+    UNUSED(canAssign);
+
+    Parser* parser = compiler->parser;
+    int strLen = parser->previous.length-2;
+    char* string = ALLOCATE(parser->vm, char, strLen+1);
+
+    memcpy(string, parser->previous.start+1, strLen);
+    int length = parseEscapeSequence(parser, string, strLen);
+
+    if (length != strLen) {
+        string = GROW_ARRAY(parser->vm, char, string, strLen+1, length+1);
+    }
+    string[length] = '\0';
+    return OBJ_VAL(takeString(parser->vm, string, length));
+}
+
 /**
  * @brief Method to convert a parsed string into string value
  *
  */
 static void string(Compiler* compiler, bool canAssign) {
     UNUSED(canAssign);
-    emitConstant( compiler, OBJ_VAL(copyString(compiler->parser->vm,
-                                               compiler->parser->previous.start + 1,
-                                               compiler->parser->previous.length -2)) );
+    emitConstant(compiler, parseString(compiler, canAssign));
 }
 
 /**
@@ -932,6 +1000,7 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_RSTRING]       = {rawString,NULL, PREC_NONE},
 
     [TOKEN_PLUS_PLUS]     = {NULL,     increment,   PREC_NONE},
     [TOKEN_PLUS_EQUALS]   = {NULL,     NULL,   PREC_NONE},
@@ -1698,7 +1767,10 @@ ObjFunction* compile(VM* vm, ObjModule* module, const char *source) {
     parser.hadError = false;
     parser.panicMode = false;
     parser.module = module;
-    initScanner(source);
+
+    Scanner scanner;
+    initScanner(&scanner, source);
+    parser.scanner = scanner;
 
     Compiler compiler;
     initCompiler(&parser, &compiler, NULL, TYPE_SCRIPT);

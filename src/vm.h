@@ -38,6 +38,7 @@ struct _vm {
     Table globals;            // hash table to hold global variables
     Table strings;            // every string that's created
     Table listMethods;        // list methods
+    Table stringMethods;      // string methods
 
     ObjModule* lastModule;    // modules
     Table modules;            // 

@@ -225,6 +225,7 @@ static void markRoots(VM* vm) {
     markTable(vm, &vm->globals);
     markTable(vm, &vm->modules);
     markTable(vm, &vm->listMethods);
+    markTable(vm, &vm->stringMethods);
     markCompilerRoots(vm);
     markObject(vm, (Obj*)vm->initString);
 }
