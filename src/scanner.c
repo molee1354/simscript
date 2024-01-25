@@ -381,6 +381,7 @@ Token scanToken(Scanner* scanner) {
             }
         }
         case '%': return makeToken(scanner, TOKEN_MOD);
+        case '^': return makeToken(scanner, TOKEN_POWER);
 
         // recognizing double character tokens
         case '!':

@@ -28,6 +28,7 @@ typedef enum {
     PREC_COMPARISON,  // < > <= >=
     PREC_TERM,        // + -
     PREC_FACTOR,      // * / %
+    PREC_POWER,       // **
     PREC_UNARY,       // ! -
     PREC_SUBSCRIPT,   // []
     PREC_CALL,        // . ()

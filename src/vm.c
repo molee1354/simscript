@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -811,10 +812,21 @@ static InterpretResult run(VM* vm) {
                     push(vm, NUMBER_VAL(a+b));
                 } else {
                     runtimeError(vm,
-                            "Operands must be two numbers or two strings.");
+                            "Operands for '+' must either be strings or numbers.");
                     return INTERPRET_RUNTIME_ERROR;;
                 }
                 break;
+            }
+            case OP_POWER: {
+                if ( IS_NUMBER(peek(vm,0)) && IS_NUMBER(peek(vm,1)) ) {
+                    double b = AS_NUMBER(pop(vm));
+                    double a = AS_NUMBER(pop(vm));
+                    push( vm, NUMBER_VAL(pow(a, b)) );
+                } else {
+                    runtimeError(vm,
+                            "Operands for '**' must be two numbers.");
+                    return INTERPRET_RUNTIME_ERROR;;
+                }
             }
             case OP_SUBTRACT: BINARY_OP(vm, NUMBER_VAL, -); break;
             case OP_MULTIPLY: BINARY_OP(vm, NUMBER_VAL, *); break;
