@@ -55,7 +55,7 @@ for TEST in ${TESTS}; do
     fi
 
     # Printing out test header
-    printf "\ttesting  %-12s [%2d/%2d]\t......\t" ${CURRENT} ${N} ${COUNT}
+    printf "\ttesting  %-14s [%2d/%2d]\t......\t" ${CURRENT} ${N} ${COUNT}
     
     # Run the command with a timeout
     OUTPUT=$(timeout 3s ${PROG} ${TEST} 2> ${TEMP})
