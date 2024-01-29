@@ -623,13 +623,14 @@ static InterpretResult run(VM* vm) {
                 if (!validIndexList(vm, list, index)) {
                     if (index > list->items.count) {
                         // "autovivification" with nulls
-                        runtimeWarning(vm, "Index value greater than list capacity.");
+                        runtimeWarning(vm, "Index value greater than list length (given %d, length %d)",
+                                index, list->items.count);
                         for (int i = list->items.count; i < index-1; i++) {
                             appendList(vm, list, NULL_VAL);
                         }
                         appendList(vm, list, item);
                     } else {
-                    runtimeError(vm, "List index out of bounds (given %d, length %d)",
+                        runtimeError(vm, "List index out of bounds (given %d, length %d)",
                                 index, list->items.count-1);
                         return INTERPRET_RUNTIME_ERROR;
                     }
