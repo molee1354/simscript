@@ -1,10 +1,10 @@
-# simscript `v0.0.8rc1`
+# simscript `v0.0.9rc1`
 
 A ***sim***ple ***scr***ipting language based on the [*Crafting Interpreters*](https://craftinginterpreters.com/) book.
 
 ## Table of Contents
 
-- [simscript `v0.0.8rc1`](#simscript-v008rc1)
+- [simscript `v0.0.9rc1`](#simscript-v009rc1)
   - [Table of Contents](#table-of-contents)
   - [Download](#download)
   - [Setup](#setup)
@@ -89,7 +89,7 @@ path/to/script.ss
 
 ## Current Release
 
-Here are some new features in version (`v0.0.8rc1`). A full log of releases can be found [here](./docs/release.md).
+Here are some new features in version (`v0.0.9rc1`). A full log of releases can be found [here](./docs/release.md).
 
 Version `v0.0.8` is a comparatively smaller release that aims to fill the little gaps in the language. With significant improvements to strings, a newly added math standard library, and more helpful error messages, this patch should set Simscript up in a good spot for future, more additive improvements.
 

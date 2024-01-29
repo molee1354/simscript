@@ -507,6 +507,7 @@ static void binary(Compiler* compiler, bool canAssign) {
         case TOKEN_STAR:          emitByte(compiler, OP_MULTIPLY); break;
         case TOKEN_SLASH:         emitByte(compiler, OP_DIVIDE); break;
         case TOKEN_MOD:           emitByte(compiler, OP_MOD); break;
+        case TOKEN_POWER:         emitByte(compiler, OP_POWER); break;
 
         // unreachable
         default: return;
@@ -988,6 +989,7 @@ ParseRule rules[] = {
     [TOKEN_DOT]           = {NULL,     dot,   PREC_CALL},
     [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
     [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
+    [TOKEN_POWER]         = {NULL,     binary, PREC_POWER},
     [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
     [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
@@ -1366,6 +1368,7 @@ static int getArgCount(const uint8_t *code, const ValueArray constants, int ip) 
         case OP_MULTIPLY:
         case OP_DIVIDE:
         case OP_MOD:
+        case OP_POWER:
         case OP_NOT:
         case OP_NEGATE:
         case OP_CLOSE_UPVALUE:
