@@ -1,18 +1,18 @@
 class Animal {
-    init(type) {
+    public init(type) {
         this.type = type;
     }
-    speak() {
+    public speak() {
         echo "I am a " + this.type;
     }
 }
 
 class Dog extends Animal {
-    init(name) {
+    public init(name) {
         this.name = name;
         super.init("Dog");
     }
-    bark() {
+    public bark() {
         this.speak();
         echo "My name is " + this.name;
     }

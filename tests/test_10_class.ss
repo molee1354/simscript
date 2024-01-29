@@ -1,8 +1,8 @@
 class Coffee {
-    init(type) {
+    public init(type) {
         this.type = type;
     }
-    brew() {
+    public brew() {
         echo "Making some " + this.type + "!";
     }
 }
