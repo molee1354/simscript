@@ -824,9 +824,10 @@ static InterpretResult run(VM* vm) {
                     push( vm, NUMBER_VAL(pow(a, b)) );
                 } else {
                     runtimeError(vm,
-                            "Operands for '**' must be two numbers.");
+                            "Operands for '^' must be two numbers.");
                     return INTERPRET_RUNTIME_ERROR;;
                 }
+                break;
             }
             case OP_SUBTRACT: BINARY_OP(vm, NUMBER_VAL, -); break;
             case OP_MULTIPLY: BINARY_OP(vm, NUMBER_VAL, *); break;
