@@ -2,7 +2,7 @@
 
 You can download the pre-compiled Simscript binaries here.
 
-## Current Release `v0.0.7`
+## Current Release `v0.0.8`
 
 - Linux binary [`simscript`](https://raw.githubusercontent.com/molee1354/simscript/master/bin/simscript)
 - Windows executable [`simscript.exe`](https://raw.githubusercontent.com/molee1354/simscript/master/bin/simscript.exe)
